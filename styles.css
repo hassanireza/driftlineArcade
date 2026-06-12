@@ -1,0 +1,380 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@300;400;500;700&display=swap');
+
+/* ── Tokens ────────────────────────────────────────────── */
+:root {
+  --ink:       #0a0a0a;
+  --off:       #111111;
+  --rule:      rgba(255,255,255,0.08);
+  --cream:     #f0ece3;
+
+  /* Skyfold — exact game palette */
+  --sky-bg:    #f4dfbf;
+  --sky-deep:  #34414f;
+  --sky-acc:   #e77b69;
+  --sky-mid:   #ecc36f;
+  --sky-pale:  #fff8eb;
+  --sky-plum:  #6a5d8f;
+
+  /* Voidrunner — exact game palette */
+  --void-bg:   #07050a;
+  --void-deep: #03040a;
+  --void-acc:  #22d3ee;
+  --void-mid:  #a78bfa;
+  --void-pale: #f4effb;
+  --void-mars: #c1440e;
+
+  --panel-active: 78%;
+  --panel-rest:   22%;
+  --ease-panel: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow-x: hidden; }
+
+body {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  background: var(--ink);
+  color: var(--cream);
+  -webkit-font-smoothing: antialiased;
+  cursor: default;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ── Masthead ────────────────────────────────────────────── */
+.masthead {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 20px 36px;
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+.masthead-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.1rem;
+  letter-spacing: 0.22em;
+  color: var(--cream);
+}
+
+/* ── Split container ─────────────────────────────────────── */
+.split {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ── Panel base ──────────────────────────────────────────── */
+.panel {
+  position: relative;
+  flex: 1 1 50%;
+  overflow: hidden;
+  cursor: default;
+  transition:
+    flex-basis 0.72s var(--ease-panel),
+    flex-grow 0.72s var(--ease-panel);
+  outline: none;
+}
+
+/* Hover: active expands, sibling collapses */
+.split:has(.panel:hover) .panel       { flex: 0 0 var(--panel-rest); }
+.split:has(.panel:hover) .panel:hover { flex: 0 0 var(--panel-active); }
+
+/* Keyboard focus fallback */
+.split:has(.panel:focus-visible) .panel    { flex: 0 0 var(--panel-rest); }
+.panel:focus-visible                        { flex: 0 0 var(--panel-active) !important; }
+
+/* ── Panel backgrounds ───────────────────────────────────── */
+/* Exact game sky gradient from drawSky() */
+.panel-sky {
+  background: linear-gradient(180deg, #f6c5b2 0%, #f4dfbf 38%, #b8dced 72%, #79b5c6 100%);
+}
+/* Exact game void bg from drawBackground() */
+.panel-void {
+  background: #07050a;
+}
+
+/* ── Canvas art (position: absolute, fills panel, behind content) */
+.panel-art-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  display: block;
+}
+
+/* ── Ghost number ─────────────────────────────────────────── */
+.ghost-num {
+  position: absolute;
+  z-index: 1;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(220px, 30vw, 420px);
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.panel-sky  .ghost-num {
+  color: rgba(106, 93, 143, 0.09);
+  bottom: -0.18em;
+  left: -0.05em;
+}
+
+.panel-void .ghost-num {
+  color: rgba(34, 211, 238, 0.06);
+  bottom: -0.18em;
+  right: -0.05em;
+}
+
+/* ── Content layer ────────────────────────────────────────── */
+.panel-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%;
+  padding: clamp(32px, 4vw, 64px);
+  padding-top: 100px;
+  /* subtle gradient shield so text stays readable over art */
+  background: linear-gradient(
+    to top,
+    rgba(244,223,191,0.82) 0%,
+    rgba(244,223,191,0.45) 32%,
+    transparent 58%
+  );
+}
+
+.panel-void .panel-content {
+  align-items: flex-start;
+  text-align: left;
+  background: linear-gradient(
+    to top,
+    rgba(7,5,10,0.92) 0%,
+    rgba(7,5,10,0.55) 34%,
+    transparent 60%
+  );
+  padding-bottom: clamp(40px, 6vh, 72px);
+}
+
+/* ── Eyebrow ─────────────────────────────────────────────── */
+.eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 10px;
+  opacity: 0.7;
+}
+
+.panel-sky  .eyebrow { color: var(--sky-deep); }
+.panel-void .eyebrow { color: var(--void-acc); }
+
+/* ── Title ───────────────────────────────────────────────── */
+.panel-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(3rem, 7vw, 7rem);
+  letter-spacing: 0.04em;
+  line-height: 0.92;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: font-size 0.4s var(--ease-panel);
+}
+
+.panel-sky  .panel-title { color: var(--sky-deep); }
+.panel-void .panel-title { color: var(--void-pale); }
+
+/* ── Tagline ─────────────────────────────────────────────── */
+.tagline {
+  font-size: clamp(0.85rem, 1.2vw, 1.05rem);
+  font-weight: 300;
+  line-height: 1.6;
+  max-width: 36ch;
+  margin-top: 10px;
+  opacity: 0.8;
+}
+
+.panel-sky  .tagline { color: #34414f; }
+.panel-void .tagline { color: var(--void-pale); }
+
+/* ── Reveal block ─────────────────────────────────────────── */
+.reveal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    max-height 0.6s var(--ease-panel) 0.1s,
+    opacity 0.5s ease 0.15s,
+    transform 0.5s ease 0.15s;
+}
+
+.panel:hover .reveal,
+.panel:focus-visible .reveal {
+  max-height: 480px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.description {
+  font-size: 0.88rem;
+  line-height: 1.75;
+  font-weight: 300;
+  max-width: 40ch;
+  margin-top: 8px;
+}
+
+.panel-sky  .description { color: #34414f; }
+.panel-void .description { color: rgba(244,239,251,0.82); }
+
+/* ── Feature list ───────────────────────────────────────── */
+.feature-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.feature-list li {
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-void .feature-list li { justify-content: flex-start; flex-direction: row; }
+
+.feature-list li::before {
+  content: '';
+  display: inline-block;
+  width: 20px;
+  height: 2px;
+  flex-shrink: 0;
+}
+
+.panel-sky  .feature-list li         { color: #34414f; }
+.panel-sky  .feature-list li::before { background: var(--sky-acc); }
+.panel-void .feature-list li         { color: var(--void-pale); }
+.panel-void .feature-list li::before { background: var(--void-acc); }
+
+/* ── CTA Button ──────────────────────────────────────────── */
+.cta-row { margin-top: 14px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 28px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.95rem;
+  letter-spacing: 0.18em;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.btn:hover { transform: translateY(-2px); }
+
+.btn-sky {
+  background: #34414f;
+  color: var(--sky-pale);
+  border-color: #34414f;
+}
+.btn-sky:hover { box-shadow: 0 8px 28px rgba(52,65,79,0.38); }
+
+.btn-void {
+  background: var(--void-acc);
+  color: var(--void-deep);
+  border-color: var(--void-acc);
+}
+.btn-void:hover { box-shadow: 0 8px 28px rgba(34,211,238,0.38); }
+
+/* ── Vertical divider badge ──────────────────────────────── */
+.divider {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.split:has(.panel:hover) .divider { opacity: 0; }
+
+.divider-line {
+  width: 1px;
+  height: 40px;
+  background: rgba(255,255,255,0.2);
+}
+
+.divider-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  color: rgba(255,255,255,0.35);
+  padding: 4px 0;
+}
+
+/* ── Mobile: stack vertically ────────────────────────────── */
+@media (max-width: 760px) {
+  body { background: var(--ink); }
+
+  .split {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    background: var(--ink);
+  }
+
+  .panel {
+    flex: none !important;
+    height: 100vh;
+    min-height: 100vh;
+    max-height: 100vh;
+  }
+
+  .split:has(.panel:hover) .panel,
+  .split:has(.panel:hover) .panel:hover {
+    flex: none !important;
+  }
+
+  .reveal {
+    max-height: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .divider { display: none; }
+
+  .ghost-num { font-size: clamp(120px, 38vw, 200px); }
+}
+
+/* ── Reduced motion ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .reveal,
+  .divider { transition: none; }
+}

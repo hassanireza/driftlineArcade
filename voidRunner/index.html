@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VOIDRUNNER - Laser Survival Run</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="site-shell">
+  <nav class="top-nav" aria-label="Primary navigation">
+    <a class="brand" href="#home" aria-label="VOIDRUNNER home">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>VOIDRUNNER</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#game">Play</a></li>
+      <li><a href="#leaderboard">Leaderboard</a></li>
+      <li><a href="#systems">Systems</a></li>
+    </ul>
+  </nav>
+
+  <header class="hero" id="home">
+    <div class="hero-copy">
+      <div class="eyebrow">Mars Sector 7</div>
+      <h1>
+        <span class="tone-a">RUN THE</span>
+        <span class="tone-b">LASER LINE</span>
+        <span class="tone-c">TO DAWN.</span>
+      </h1>
+      <p class="hero-desc">
+        VEGA is stranded on the red surface with one reliable tool: an infinite-charge laser.
+        Jump, slide, fire, pause cleanly, and fight for a saved leaderboard rank on this device.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#game">Start Run</a>
+        <a class="btn" href="#leaderboard">View Scores</a>
+      </div>
+    </div>
+    <aside class="mission-card" aria-label="Mission status">
+      <div class="planet-window">
+        <div class="window-readout">
+          <div class="readout"><strong id="heroBest">00000</strong><span>Best</span></div>
+          <div class="readout"><strong id="heroRuns">0</strong><span>Runs</span></div>
+          <div class="readout"><strong>LASER</strong><span>Loadout</span></div>
+        </div>
+      </div>
+    </aside>
+  </header>
+
+  <main>
+    <section class="game-section" id="game" aria-label="VOIDRUNNER game">
+      <div class="game-layout">
+        <div class="game-panel">
+          <div class="hud" aria-live="polite">
+            <div class="hud-cell"><span class="hud-label">Score</span><span class="hud-value" id="hudScore">00000</span></div>
+            <div class="hud-cell"><span class="hud-label">Best</span><span class="hud-value" id="hudBest">00000</span></div>
+            <div class="hud-cell"><span class="hud-label">Lives</span><span class="hud-value" id="hudLives">3</span></div>
+            <div class="hud-cell"><span class="hud-label">Laser Ammo</span><span class="hud-value laser" id="hudAmmo">INF</span></div>
+          </div>
+          <div class="stage-wrap" id="stageWrap">
+            <canvas id="gameCanvas" width="960" height="360" aria-label="VOIDRUNNER playable canvas"></canvas>
+            <div class="overlay" id="overlay">
+              <div class="overlay-box" role="dialog" aria-modal="false" aria-labelledby="overlayTitle">
+                <div class="overlay-kicker" id="overlayKicker">Laser Survival Protocol</div>
+                <h2 class="overlay-title" id="overlayTitle">VOIDRUNNER</h2>
+                <div class="overlay-score" id="overlayScore"></div>
+                <div class="overlay-actions">
+                  <button class="btn btn-primary" id="primaryButton" type="button">Begin Run</button>
+                  <button class="btn" id="resumeButton" type="button">Resume</button>
+                </div>
+                <p class="overlay-sub" id="overlaySub">Space or Up jumps. Down slides or fast-falls. F or Z fires the infinite laser. P pauses.</p>
+              </div>
+            </div>
+          </div>
+          <div class="control-bar" aria-label="Touch controls">
+            <button class="control-button" id="jumpButton" type="button">Jump</button>
+            <button class="control-button" id="slideButton" type="button">Slide</button>
+            <button class="control-button" id="fireButton" type="button">Laser</button>
+            <button class="control-button" id="pauseButton" type="button">Pause</button>
+          </div>
+        </div>
+
+        <aside class="side-panel" id="leaderboard">
+          <div class="side-head">
+            <h2>Leaderboard</h2>
+            <span class="status-pill">Saved</span>
+          </div>
+          <div class="leaderboard" id="leaderboardRows" aria-live="polite"></div>
+          <div class="side-actions">
+            <button class="btn" id="clearBoardButton" type="button">Clear Scores</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="feature-strip" id="systems">
+        <article class="feature">
+          <div class="feature-num">01</div>
+          <h3>Laser-only loadout</h3>
+          <p>No switching, no hidden ammo depletion, no obsolete secondary loadout paths. Every shot uses the same reliable projectile model.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-num">02</div>
+          <h3>Pause-safe loop</h3>
+          <p>The simulation stops while paused, resumes without double ticks, and keeps controls predictable on keyboard and touch screens.</p>
+        </article>
+        <article class="feature">
+          <div class="feature-num">03</div>
+          <h3>Persistent scores</h3>
+          <p>Completed runs are ranked locally with dates, best score, and run count saved through browser storage.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>VOIDRUNNER - Mars Sector 7</span>
+    <span>Laser survival build</span>
+  </footer>
+</div>
+
+<script src="game.js" defer></script>
+</body>
+</html>
+

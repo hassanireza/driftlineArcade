@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Driftline Arcade — Two Worlds, One Beam</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ─── Masthead ─────────────────────────────────────── -->
+  <header class="masthead">
+    <span class="masthead-logo">Driftline Arcade</span>
+  </header>
+
+  <!-- ─── Split layout ─────────────────────────────────── -->
+  <main class="split" id="split">
+
+    <!-- ─ Panel 1 : Skyfold Aviary ─ -->
+    <section
+      class="panel panel-sky"
+      id="skyfold"
+      tabindex="0"
+      role="region"
+      aria-labelledby="skyfold-title"
+    >
+      <!-- Animated scene art : Canvas -->
+      <canvas class="panel-art-canvas" id="skyfold-canvas" aria-hidden="true"></canvas>
+
+      <!-- Ghost number -->
+      <div class="ghost-num" aria-hidden="true">01</div>
+
+      <!-- Content -->
+      <div class="panel-content">
+        <span class="eyebrow">Game One · Cozy Survival</span>
+        <h1 class="panel-title" id="skyfold-title">Skyfold<br>Aviary</h1>
+        <p class="tagline">A laser glider drifts between floating terraces as the sky turns gold.</p>
+
+        <div class="reveal">
+          <p class="description">
+            Skyfold opens at first light. Your glider banks between stacked
+            terraces while motes drift on thermal winds. Nothing rushes
+            you — until a monolith breaks formation and forces a choice.
+          </p>
+          <ul class="feature-list">
+            <li>Charge-based beam with visible cooldown rhythm</li>
+            <li>Procedural terrace layers that escalate in density</li>
+            <li>Touch-friendly directional controls for handheld play</li>
+            <li>Local leaderboard tracking your best layer and run time</li>
+          </ul>
+          <div class="cta-row">
+            <a class="btn btn-sky" href="./skyfold/index.html">Play Skyfold →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─ Divider badge ─ -->
+    <div class="divider" aria-hidden="true">
+      <span class="divider-line"></span>
+      <span class="divider-badge">VS</span>
+      <span class="divider-line"></span>
+    </div>
+
+    <!-- ─ Panel 2 : Voidrunner ─ -->
+    <section
+      class="panel panel-void"
+      id="voidrunner"
+      tabindex="0"
+      role="region"
+      aria-labelledby="void-title"
+    >
+      <!-- Animated scene art : Canvas -->
+      <canvas class="panel-art-canvas" id="void-canvas" aria-hidden="true"></canvas>
+
+      <!-- Ghost number -->
+      <div class="ghost-num" aria-hidden="true">02</div>
+
+      <!-- Content -->
+      <div class="panel-content">
+        <span class="eyebrow">Game Two · Laser Survival</span>
+        <h1 class="panel-title" id="void-title">Void<br>runner</h1>
+        <p class="tagline">VEGA runs the laser line across Mars Sector 7, chasing the dawn.</p>
+
+        <div class="reveal">
+          <p class="description">
+            Voidrunner is a sprint. VEGA carries one infinite-charge laser
+            and uses it constantly while the ground rushes by in deep
+            violet and void black. Every obstacle arrives in a tight, readable
+            sequence. Lives are limited. The leaderboard remembers.
+          </p>
+          <ul class="feature-list">
+            <li>Infinite ammo laser for constant offensive pressure</li>
+            <li>Run, jump, and slide layered into tight sequences</li>
+            <li>High-contrast sci-fi HUD with live score and lives</li>
+            <li>Persistent on-device leaderboard for best score</li>
+          </ul>
+          <div class="cta-row">
+            <a class="btn btn-void" href="./voidRunner/index.html">Play Voidrunner →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
