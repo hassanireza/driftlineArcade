@@ -3,14 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#f5d9bf">
+  <meta name="theme-color" content="#f4dfbf">
   <title>Skyfold Aviary</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+  <!-- ═══ GAME SHELL (visible during gameplay) ═══════════════ -->
   <main class="game-shell" aria-label="Skyfold Aviary game">
+
     <section class="hud" aria-label="Game status">
-      <div class="brand-lockup" aria-label="Skyfold Aviary">
+      <div class="brand-lockup">
         <span class="brand-mark" aria-hidden="true"></span>
         <div>
           <strong>Skyfold Aviary</strong>
@@ -19,18 +22,9 @@
       </div>
 
       <div class="hud-metrics">
-        <div class="metric">
-          <span>Score</span>
-          <strong id="scoreValue">0</strong>
-        </div>
-        <div class="metric">
-          <span>Layer</span>
-          <strong id="waveValue">1</strong>
-        </div>
-        <div class="metric">
-          <span>Hull</span>
-          <strong id="healthValue">100%</strong>
-        </div>
+        <div class="metric"><span>Score</span><strong id="scoreValue">0</strong></div>
+        <div class="metric"><span>Layer</span><strong id="waveValue">1</strong></div>
+        <div class="metric"><span>Hull</span><strong id="healthValue">100%</strong></div>
         <div class="metric laser-meter">
           <span>Beam</span>
           <strong id="laserValue">Ready</strong>
@@ -38,7 +32,7 @@
         </div>
       </div>
 
-      <button id="pauseButton" class="icon-button" type="button" aria-label="Pause game" title="Pause">
+      <button id="pauseButton" class="icon-button" type="button" aria-label="Pause game">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5v14M15 5v14"/></svg>
       </button>
     </section>
@@ -49,89 +43,356 @@
 
     <section class="mobile-controls" aria-label="Touch controls">
       <div class="dpad">
-        <button class="up" data-control="up" type="button" aria-label="Move up">▲</button>
-        <button class="left" data-control="left" type="button" aria-label="Move left">◀</button>
+        <button class="up"    data-control="up"    type="button" aria-label="Move up">▲</button>
+        <button class="left"  data-control="left"  type="button" aria-label="Move left">◀</button>
         <button class="right" data-control="right" type="button" aria-label="Move right">▶</button>
-        <button class="down" data-control="down" type="button" aria-label="Move down">▼</button>
+        <button class="down"  data-control="down"  type="button" aria-label="Move down">▼</button>
       </div>
       <button id="touchFire" class="fire-button" type="button" aria-label="Fire laser">Fire</button>
     </section>
+
   </main>
 
+  <!-- ═══ START OVERLAY ══════════════════════════════════════ -->
   <section id="startOverlay" class="overlay">
     <div class="dialog start-dialog" role="dialog" aria-modal="true" aria-labelledby="startTitle">
-      <div class="cover-art" aria-hidden="true">
-        <div class="floating-tower tower-a"></div>
-        <div class="floating-tower tower-b"></div>
-        <div class="floating-tower tower-c"></div>
-        <div class="cover-plane"></div>
+
+      <!-- Left: live animated canvas preview -->
+      <div class="cover-col" aria-hidden="true">
+        <canvas id="coverCanvas"></canvas>
       </div>
-      <div class="dialog-copy">
-        <p class="eyebrow">Architectural arcade flight</p>
-        <h1 id="startTitle">Skyfold Aviary</h1>
-        <p>Guide a folded glider through quiet impossible terraces, trace enemies with an endless light beam, and climb the sky layers.</p>
-      </div>
-      <div class="dialog-body">
-        <div class="actions">
-          <button id="startButton" class="primary" type="button">Start Run</button>
-          <button id="resetScoresButton" class="secondary" type="button">Clear Scores</button>
+
+      <!-- Right: copy + actions -->
+      <div class="content-col">
+
+        <div class="copy-block">
+          <p class="eyebrow">Architectural arcade flight</p>
+          <h1 id="startTitle">Skyfold<br>Aviary</h1>
+          <p class="tagline">Guide a folded glider through impossible floating terraces, trace enemies with an endless light beam, and climb the sky layers.</p>
         </div>
-        <p class="hint">Move with arrow keys, WASD, or touch controls. Fire with Space, Enter, pointer press, or the Fire button. Pause with P or Esc.</p>
-        <section class="leaderboard-panel" aria-label="Local leaderboard">
-          <div class="leaderboard-title"><span>Local Leaderboard</span><span>Top 10</span></div>
-          <ol id="startScores"></ol>
-        </section>
+
+        <div class="body-block">
+          <div class="actions">
+            <button id="startButton"       class="btn-primary"   type="button">Start Run</button>
+            <button id="resetScoresButton" class="btn-secondary" type="button">Clear Scores</button>
+          </div>
+          <p class="hint">Arrow keys · WASD · touch to move &nbsp;·&nbsp; Space or Fire to shoot &nbsp;·&nbsp; P / Esc to pause</p>
+          <div class="leaderboard-panel">
+            <div class="lb-header"><span>Local Leaderboard</span><span>Top 10</span></div>
+            <ol id="startScores" aria-label="Leaderboard"></ol>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
 
+  <!-- ═══ PAUSE OVERLAY ═════════════════════════════════════ -->
   <section id="pauseOverlay" class="overlay" hidden>
     <div class="dialog compact-dialog" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
-      <div class="dialog-copy">
+      <div class="copy-block padded">
         <p class="eyebrow">Run suspended</p>
         <h2 id="pauseTitle">Paused</h2>
-        <p>The glider is held between layers until you return.</p>
+        <p class="tagline">The glider is held between layers until you return.</p>
       </div>
-      <div class="dialog-body">
+      <div class="body-block padded">
         <div class="actions">
-          <button id="resumeButton" class="primary" type="button">Resume</button>
-          <button id="restartFromPauseButton" class="secondary" type="button">Restart</button>
-          <button id="quitButton" class="secondary" type="button">End Run</button>
+          <button id="resumeButton"           class="btn-primary"   type="button">Resume</button>
+          <button id="restartFromPauseButton" class="btn-secondary" type="button">Restart</button>
+          <button id="quitButton"             class="btn-secondary" type="button">End Run</button>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- ═══ GAME OVER OVERLAY ════════════════════════════════ -->
   <section id="gameOverOverlay" class="overlay" hidden>
-    <div class="dialog compact-dialog" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
-      <div class="dialog-copy">
-        <p class="eyebrow">Layer complete</p>
-        <h2 id="gameOverTitle">Run Complete</h2>
-        <p id="resultCopy">Your score is ready to save locally.</p>
+    <div class="dialog compact-dialog no-scroll" role="dialog" aria-modal="true" aria-labelledby="gameOverTitle">
+      <div class="copy-block padded">
+        <p class="eyebrow" id="gameOverEyebrow">Glider down</p>
+        <h2 id="gameOverTitle">Nice Flight</h2>
+        <p id="resultCopy" class="tagline">Your score is ready to save locally.</p>
       </div>
-      <div class="dialog-body">
-        <div class="result-grid">
-          <div class="metric panel-metric"><span>Score</span><strong id="finalScore">0</strong></div>
-          <div class="metric panel-metric"><span>Layer</span><strong id="finalWave">1</strong></div>
-          <div class="metric panel-metric"><span>Time</span><strong id="finalTime">0:00</strong></div>
+      <div class="body-block padded gap-sm no-scroll">
+        <div class="stat-row">
+          <div class="stat-card"><span>Score</span><strong id="finalScore">0</strong></div>
+          <div class="stat-card"><span>Layer</span><strong id="finalWave">1</strong></div>
+          <div class="stat-card"><span>Time</span> <strong id="finalTime">0:00</strong></div>
         </div>
         <form id="nameForm" class="name-form">
           <label class="sr-only" for="pilotName">Pilot name</label>
           <input id="pilotName" name="pilotName" maxlength="18" autocomplete="nickname" placeholder="Pilot name" value="Pilot">
-          <button class="primary" type="submit">Save Score</button>
+          <button class="btn-primary" type="submit">Save Score</button>
         </form>
-        <section class="leaderboard-panel" aria-label="Saved leaderboard">
-          <div class="leaderboard-title"><span>Local Leaderboard</span><span>Top 10</span></div>
-          <ol id="gameOverScores"></ol>
-        </section>
+        <div class="leaderboard-panel">
+          <div class="lb-header"><span>Local Leaderboard</span><span>Top 10</span></div>
+          <ol id="gameOverScores" aria-label="Leaderboard"></ol>
+        </div>
         <div class="actions">
-          <button id="playAgainButton" class="primary" type="button">Play Again</button>
-          <button id="menuButton" class="secondary" type="button">Menu</button>
+          <button id="playAgainButton" class="btn-primary"   type="button">Fly Again</button>
+          <button id="menuButton"      class="btn-secondary" type="button">Menu</button>
         </div>
       </div>
     </div>
   </section>
 
+  <!-- ═══ GAME LOGIC ════════════════════════════════════════ -->
   <script src="game.js"></script>
+
+  <!-- ═══ COVER CANVAS — live animated game scene ══════════ -->
+  <script>
+  (function () {
+    "use strict";
+
+    const canvas = document.getElementById("coverCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    let W = 1, H = 1, elapsed = 0, last = 0;
+
+    /* ── Laser pulse: 180 ms on, ~2.2 s interval ── */
+    const LASER_INTERVAL = 2200;
+    const LASER_DURATION = 180;
+    let laserTimer = 1100; /* first shot at 1.1 s */
+
+    /* ── Sentry orbit state ── */
+    const SENTRY = { orbitR: 0, phase: 0, speed: 0.55 }; /* rad/s */
+
+    /* ── Particles ── */
+    const terraces = [], motes = [];
+
+    function makeTerrace(scatter) {
+      return {
+        xf: Math.random(),
+        yf: scatter ? Math.random() : -0.12,
+        w: Math.random() * 110 + 65,
+        h: Math.random() * 36 + 20,
+        d: Math.random() * 40 + 20,
+        vf: (Math.random() * 5 + 2.5) / 10000, /* fraction-of-H per ms */
+        hue: Math.random()
+      };
+    }
+
+    function makeMote(scatter) {
+      return {
+        xf: Math.random(),
+        yf: scatter ? Math.random() : -0.03,
+        r:  Math.random() * 2.2 + 0.7,
+        vf: (Math.random() * 8 + 3) / 10000,
+        color: Math.random() > 0.5 ? "#fff8eb" : "#f4b29f"
+      };
+    }
+
+    function populate() {
+      const tc = Math.max(8,  Math.round(H / 85));
+      const mc = Math.max(28, Math.round(W * H / 11000));
+      terraces.length = 0; motes.length = 0;
+      for (let i = 0; i < tc; i++) terraces.push(makeTerrace(true));
+      for (let i = 0; i < mc; i++) motes.push(makeMote(true));
+      SENTRY.orbitR = Math.min(W, H) * 0.18;
+    }
+
+    /* ── Draw iso terrace — mirrors game drawIsoBlock exactly ── */
+    function isoBlock(cx, cy, w, h, d, hue) {
+      const top   = hue > .66 ? "#fff4d8" : hue > .33 ? "#eaf0d7" : "#f9eadf";
+      const left  = hue > .66 ? "#d98aa0" : hue > .33 ? "#97cbbf" : "#e7b58f";
+      const right = hue > .66 ? "#6a5d8f" : hue > .33 ? "#6fa9b5" : "#d28e79";
+      ctx.save();
+      ctx.globalAlpha = 0.88;
+      ctx.translate(cx, cy);
+      ctx.beginPath();
+      ctx.moveTo(0, -h/2); ctx.lineTo(w/2, 0); ctx.lineTo(0, h/2); ctx.lineTo(-w/2, 0);
+      ctx.closePath(); ctx.fillStyle = top; ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-w/2, 0); ctx.lineTo(0, h/2); ctx.lineTo(0, h/2+d); ctx.lineTo(-w/2, d);
+      ctx.closePath(); ctx.fillStyle = left; ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(w/2, 0); ctx.lineTo(0, h/2); ctx.lineTo(0, h/2+d); ctx.lineTo(w/2, d);
+      ctx.closePath(); ctx.fillStyle = right; ctx.fill();
+      ctx.strokeStyle = "rgba(66,60,82,.12)"; ctx.lineWidth = 1; ctx.stroke();
+      ctx.restore();
+    }
+
+    /* ── Glider world position (gentle bob) ── */
+    function gliderPos(t) {
+      return {
+        px:  W * 0.50 + Math.sin(t * 0.00036) * W * 0.07,
+        py:  H * 0.42 + Math.cos(t * 0.00050) * H * 0.055,
+        aim: -Math.PI / 2 + Math.sin(t * 0.00043) * 0.22
+      };
+    }
+
+    /* ── Draw glider — mirrors game drawPlayer() exactly ── */
+    function drawGlider(t) {
+      const { px, py, aim } = gliderPos(t);
+      const s = Math.min(W, H) / 310;
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(aim + Math.PI / 2);
+      ctx.shadowColor = "rgba(106,93,143,.45)";
+      ctx.shadowBlur  = 18;
+      /* body */
+      ctx.fillStyle   = "#fff8eb";
+      ctx.strokeStyle = "#6a5d8f";
+      ctx.lineWidth   = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(0, -24*s); ctx.lineTo(18*s, 15*s); ctx.lineTo(4*s, 9*s);
+      ctx.lineTo(0, 22*s);  ctx.lineTo(-4*s, 9*s);  ctx.lineTo(-18*s, 15*s);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      /* cockpit coral */
+      ctx.fillStyle = "#e77b69";
+      ctx.beginPath();
+      ctx.moveTo(0, -19*s); ctx.lineTo(7*s, 7*s); ctx.lineTo(0, 13*s); ctx.lineTo(-7*s, 7*s);
+      ctx.closePath(); ctx.fill();
+      /* wing detail lines */
+      ctx.strokeStyle = "rgba(106,93,143,.28)"; ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(0, -22*s); ctx.lineTo(0, 20*s);
+      ctx.moveTo(-15*s, 12*s); ctx.lineTo(0, 1*s); ctx.lineTo(15*s, 12*s);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    /* ── Draw laser beam (only when firing) — mirrors game drawBeams() ── */
+    function drawBeam(t, laserAge) {
+      if (laserAge < 0 || laserAge > LASER_DURATION) return;
+      const { px, py, aim } = gliderPos(t);
+      const s    = Math.min(W, H) / 310;
+      const fade = 1 - laserAge / LASER_DURATION;
+      const len  = (88 + Math.sin(t * 0.0011) * 10) * s;
+
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.rotate(aim + Math.PI / 2);
+      ctx.lineCap = "round";
+
+      /* outer glow — game: shadowColor #e77b69, shadowBlur 18 */
+      ctx.strokeStyle = "#e77b69";
+      ctx.lineWidth   = 9 * s;
+      ctx.shadowColor = "#e77b69";
+      ctx.shadowBlur  = 18;
+      ctx.globalAlpha = fade * 0.35;
+      ctx.beginPath(); ctx.moveTo(0, -22*s); ctx.lineTo(0, -22*s - len); ctx.stroke();
+
+      /* white core — game: strokeStyle #fff8eb, lineWidth 9 */
+      ctx.strokeStyle = "#fff8eb";
+      ctx.lineWidth   = 6 * s;
+      ctx.globalAlpha = fade * 0.95;
+      ctx.beginPath(); ctx.moveTo(0, -22*s); ctx.lineTo(0, -22*s - len); ctx.stroke();
+
+      /* coral centre line — game: strokeStyle #e77b69, lineWidth 3 */
+      ctx.strokeStyle = "#e77b69";
+      ctx.lineWidth   = 2.5 * s;
+      ctx.beginPath(); ctx.moveTo(0, -22*s); ctx.lineTo(0, -22*s - len); ctx.stroke();
+
+      ctx.restore();
+    }
+
+    /* ── Draw orbiting sentry — mirrors game drawSentries() ── */
+    function drawSentry(t) {
+      const { px, py } = gliderPos(t);
+      const phase = SENTRY.phase + t * SENTRY.speed * 0.001;
+      const sr    = SENTRY.orbitR;
+      const sx    = px + Math.cos(phase) * sr;
+      const sy    = py + Math.sin(phase) * sr * 0.52;
+      const rad   = Math.min(W, H) * 0.032;
+      const spin  = elapsed * 0.0014;
+
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate(spin);
+      ctx.shadowColor = "rgba(124,200,190,.6)";
+      ctx.shadowBlur  = 16;
+      ctx.fillStyle   = "#7cc8be";
+      ctx.strokeStyle = "#fff8eb";
+      ctx.lineWidth   = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, -rad); ctx.lineTo(rad, 0); ctx.lineTo(0, rad); ctx.lineTo(-rad, 0);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      /* inner dot */
+      ctx.fillStyle = "#e77b69";
+      ctx.shadowBlur = 0;
+      ctx.beginPath(); ctx.arc(0, 0, rad * 0.34, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    }
+
+    /* ── Main draw ── */
+    function draw(dt) {
+      ctx.clearRect(0, 0, W, H);
+
+      /* Sky — exact game gradient */
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0,    "#f6c5b2");
+      g.addColorStop(0.38, "#f4dfbf");
+      g.addColorStop(0.72, "#b8dced");
+      g.addColorStop(1,    "#79b5c6");
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+      /* Grid lines — exact game: globalAlpha .16, gap 72, elapsed*12 offset
+         (game elapsed is seconds; we keep same look but slow for cover art) */
+      ctx.save();
+      ctx.globalAlpha = 0.14; ctx.strokeStyle = "#fff8eb"; ctx.lineWidth = 1;
+      const gap = 72, off = (elapsed * 0.0015) % gap;
+      for (let y = -gap + off; y < H + gap; y += gap) {
+        ctx.beginPath(); ctx.moveTo(-40, y); ctx.lineTo(W + 40, y - 45); ctx.stroke();
+      }
+      for (let x = -gap; x < W + gap; x += gap) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + H * 0.72, H); ctx.stroke();
+      }
+      ctx.restore();
+
+      /* Terraces */
+      const sc = H / 600;
+      for (const t of terraces) isoBlock(t.xf * W, t.yf * H, t.w * sc, t.h * sc, t.d * sc, t.hue);
+
+      /* Motes */
+      ctx.save();
+      for (const m of motes) {
+        ctx.globalAlpha = 0.58; ctx.fillStyle = m.color;
+        ctx.beginPath(); ctx.arc(m.xf * W, m.yf * H, m.r, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+
+      /* Sentry orbiting glider */
+      drawSentry(elapsed);
+
+      /* Beam (intermittent) */
+      laserTimer -= dt;
+      if (laserTimer < -LASER_DURATION) laserTimer = LASER_INTERVAL;
+      const laserAge = laserTimer < 0 ? -laserTimer : -1;
+      drawBeam(elapsed, laserAge);
+
+      /* Glider (on top) */
+      drawGlider(elapsed);
+    }
+
+    /* ── Resize — uses ResizeObserver for instant response ── */
+    function resize() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      W = Math.max(1, Math.ceil(rect.width));
+      H = Math.max(1, Math.ceil(rect.height));
+      canvas.width  = W;
+      canvas.height = H;
+      populate();
+    }
+
+    /* ── RAF loop ── */
+    function tick(ts) {
+      const dt = Math.min(ts - (last || ts), 50);
+      last = ts; elapsed += dt;
+
+      for (const t of terraces) { t.yf += t.vf * dt; if (t.yf > 1.08) Object.assign(t, makeTerrace(false)); }
+      for (const m of motes)    { m.yf += m.vf * dt; if (m.yf > 1.05) Object.assign(m, makeMote(false));    }
+
+      draw(dt);
+      requestAnimationFrame(tick);
+    }
+
+    new ResizeObserver(resize).observe(canvas.parentElement);
+    resize();
+    requestAnimationFrame(tick);
+  }());
+  </script>
+
 </body>
 </html>

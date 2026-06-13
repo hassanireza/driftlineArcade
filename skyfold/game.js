@@ -32,6 +32,7 @@
   const keys = new Set();
   const touchControls = new Set();
   const pointer = { x: 0, y: 0, active: false };
+  let fireHeld = false;  // tracked independently of keys Set to avoid diagonal key interference
   const state = createInitialState();
   let mode = "menu";
   let lastFrame = 0;
@@ -57,7 +58,9 @@
       spawnTimer: 0,
       monolithTimer: 0,
       laserCooldown: 0,
-      waveProgress: 0
+      waveProgress: 0,
+      pickups: [],
+      pickupTimer: 0
     };
   }
 
@@ -164,7 +167,32 @@
     finalScore.textContent = formatNumber(pendingScore.score);
     finalWave.textContent = String(pendingScore.wave);
     finalTime.textContent = formatTime(pendingScore.time);
-    resultCopy.textContent = copy || "Your score is ready to save locally.";
+
+    // Dynamic eyebrow + title based on how the run ended
+    const eyebrow = document.getElementById("gameOverEyebrow");
+    const title   = document.getElementById("gameOverTitle");
+    const isQuit  = copy && copy.toLowerCase().includes("ended");
+
+    if (isQuit) {
+      if (eyebrow) eyebrow.textContent = "Run abandoned";
+      if (title)   title.textContent   = "Till Next Time";
+      resultCopy.textContent = "Enter your name to save your score before leaving.";
+    } else {
+      // Crash — message based on layer reached
+      const layer = pendingScore.wave;
+      if (eyebrow) eyebrow.textContent = "Glider down";
+      if (layer >= 5) {
+        if (title) title.textContent = "Stellar Run";
+        resultCopy.textContent = `You reached layer ${layer}. That's a serious flight.`;
+      } else if (layer >= 3) {
+        if (title) title.textContent = "Nice Flight";
+        resultCopy.textContent = `Layer ${layer} cleared before the terraces got you.`;
+      } else {
+        if (title) title.textContent = "Back to Sky";
+        resultCopy.textContent = "The terraces win this round. Save your score and go again.";
+      }
+    }
+
     hideAllOverlays();
     gameOverOverlay.hidden = false;
     renderLeaderboards();
@@ -179,7 +207,7 @@
     scores.sort((a, b) => b.score - a.score || b.wave - a.wave || a.time - b.time);
     saveScores(scores.slice(0, MAX_SCORES));
     scoreSaved = true;
-    resultCopy.textContent = "Saved to this browser's leaderboard.";
+    resultCopy.textContent = "Score saved to your local leaderboard.";
     renderLeaderboards();
   }
 
@@ -269,6 +297,7 @@
     updateSpawning(dt);
     updateSentries(dt);
     updateMonoliths(dt);
+    updatePickups(dt);
     updateEffects(dt);
     handleCollisions();
     updateLayers(dt);
@@ -295,9 +324,10 @@
 
   function updatePlayer(dt) {
     const movement = getMovementInput();
-    const acceleration = 830;
-    const maxSpeed = 305;
-    const drag = Math.pow(.0009, dt);
+    const acceleration = 780;
+    const maxSpeed     = 290;
+    const drag         = Math.pow(.0006, dt);
+
     state.player.vx = (state.player.vx + movement.x * acceleration * dt) * drag;
     state.player.vy = (state.player.vy + movement.y * acceleration * dt) * drag;
     const speed = Math.hypot(state.player.vx, state.player.vy);
@@ -305,14 +335,104 @@
       state.player.vx = state.player.vx / speed * maxSpeed;
       state.player.vy = state.player.vy / speed * maxSpeed;
     }
-    state.player.x = clamp(state.player.x + state.player.vx * dt, PLAYER_RADIUS, state.width - PLAYER_RADIUS);
+
+    state.player.x = clamp(state.player.x + state.player.vx * dt, PLAYER_RADIUS, state.width  - PLAYER_RADIUS);
     state.player.y = clamp(state.player.y + state.player.vy * dt, PLAYER_RADIUS, state.height - PLAYER_RADIUS);
+
+    // ── Aim: smooth angular interpolation ────────────────────────
+    let targetAim = state.player.aim;
+
     if (pointer.active) {
-      state.player.aim = Math.atan2(pointer.y - state.player.y, pointer.x - state.player.x);
-    } else if (movement.x || movement.y) {
-      state.player.aim = Math.atan2(movement.y, movement.x);
+      targetAim = Math.atan2(pointer.y - state.player.y, pointer.x - state.player.x);
+    } else if (movement.x !== 0 || movement.y !== 0) {
+      targetAim = Math.atan2(movement.y, movement.x);
+    } else if (speed > 18) {
+      // Kite drift: nose gently follows velocity when coasting
+      const driftAim = Math.atan2(state.player.vy, state.player.vx);
+      const pull     = (speed / maxSpeed) * 0.14;
+      targetAim      = lerpAngle(state.player.aim, driftAim, pull * dt * 3);
     }
+
+    const rotateSpeed = pointer.active ? 28 : 8;
+    state.player.aim  = lerpAngle(state.player.aim, targetAim, Math.min(1, rotateSpeed * dt));
+
+    // ── Firing: explicit input only — never auto-fire on movement ─
     if (isFiring()) fireLaser();
+  }
+
+  // Shortest-path angular lerp
+  function lerpAngle(a, b, t) {
+    const diff = ((b - a) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI;
+    return a + diff * t;
+  }
+
+  function updatePickups(dt) {
+    // Pickups only start appearing from wave 3 onward.
+    // Interval: 18s at wave 3, shrinking by 1s per wave, floor at 9s.
+    // At earlier waves the timer just never fires (stays at 0 while wave < 3).
+    if (state.wave >= 3) {
+      state.pickupTimer -= dt;
+      if (state.pickupTimer <= 0) {
+        const interval = Math.max(9, 18 - (state.wave - 3));
+        state.pickupTimer = interval;
+        spawnPickup();
+      }
+    }
+
+    // Move pickups down (slower than terraces — they're meant to be catchable)
+    for (let i = state.pickups.length - 1; i >= 0; i--) {
+      const p = state.pickups[i];
+      p.y += p.speed * dt;
+      p.pulse += dt * 2.8;
+
+      // Off-screen: remove silently
+      if (p.y > state.height + 60) {
+        state.pickups.splice(i, 1);
+        continue;
+      }
+
+      // Collected: player overlaps pickup
+      const dist = Math.hypot(state.player.x - p.x, state.player.y - p.y);
+      if (dist <= PLAYER_RADIUS + p.radius) {
+        const healed = Math.min(20, 100 - state.health);
+        state.health = Math.min(100, state.health + 20);
+        burstHeal(p.x, p.y, healed);
+        state.pickups.splice(i, 1);
+        updateHud();
+      }
+    }
+  }
+
+  function spawnPickup() {
+    // Spawn at a random X across the top, offset slightly so it's not
+    // always at the very edge (give the player room to intercept)
+    const margin = 60;
+    state.pickups.push({
+      x:      margin + Math.random() * (state.width - margin * 2),
+      y:      -28,
+      speed:  38 + state.wave * 1.8,   // gets faster with waves but stays catchable
+      radius: 14,
+      pulse:  Math.random() * Math.PI * 2
+    });
+  }
+
+  // Heal burst: gold shards + a small screen flash
+  function burstHeal(x, y, amount) {
+    state.shake = Math.max(state.shake, 1.2);
+    for (let i = 0; i < 14; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 140 + 40;
+      state.shards.push({
+        x, y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life:     Math.random() * .45 + .28,
+        color:    i % 3 === 0 ? "#ecc36f" : "#fff8eb",
+        size:     Math.random() * 5 + 3,
+        rotation: Math.random() * Math.PI,
+        spin:     (Math.random() - .5) * 8
+      });
+    }
   }
 
   function updateSpawning(dt) {
@@ -540,6 +660,7 @@
     ctx.translate(shakeX, shakeY);
     drawTerraces();
     drawMotes();
+    drawPickups();
     drawMonoliths();
     drawSentries();
     drawPlayer();
@@ -618,6 +739,58 @@
     ctx.strokeStyle = "rgba(66, 60, 82, .12)";
     ctx.stroke();
     ctx.restore();
+  }
+
+  function drawPickups() {
+    for (const p of state.pickups) {
+      const pulse  = 0.72 + Math.sin(p.pulse) * 0.22;  // 0.5–0.94 oscillation
+      const radius = p.radius * pulse;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+
+      // Outer glow ring
+      ctx.globalAlpha = 0.28 * pulse;
+      ctx.shadowColor = "#ecc36f";
+      ctx.shadowBlur  = 22;
+      ctx.strokeStyle = "#ecc36f";
+      ctx.lineWidth   = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, radius + 8, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Diamond body (same gold as game iso-block top face)
+      ctx.globalAlpha = 0.92;
+      ctx.shadowBlur  = 14;
+      ctx.fillStyle   = "#ecc36f";
+      ctx.beginPath();
+      ctx.moveTo(0, -radius * 1.4);
+      ctx.lineTo(radius, 0);
+      ctx.lineTo(0,  radius * 1.4);
+      ctx.lineTo(-radius, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Inner highlight
+      ctx.fillStyle   = "#fff8eb";
+      ctx.globalAlpha = 0.55 * pulse;
+      ctx.shadowBlur  = 0;
+      ctx.beginPath();
+      ctx.moveTo(0, -radius * 0.6);
+      ctx.lineTo(radius * 0.42, 0);
+      ctx.lineTo(0,  radius * 0.6);
+      ctx.lineTo(-radius * 0.42, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Coral cross (+) to indicate healing
+      ctx.globalAlpha = 0.80;
+      ctx.fillStyle   = "#e77b69";
+      const arm = radius * 0.28, thick = radius * 0.18;
+      ctx.fillRect(-thick / 2, -arm, thick, arm * 2);  // vertical
+      ctx.fillRect(-arm, -thick / 2, arm * 2, thick);  // horizontal
+
+      ctx.restore();
+    }
   }
 
   function drawMotes() {
@@ -773,7 +946,7 @@
   }
 
   function isFiring() {
-    return keys.has(" ") || keys.has("enter") || touchControls.has("fire") || pointer.active;
+    return fireHeld || touchControls.has("fire") || pointer.active;
   }
 
   function updateHud() {
@@ -806,12 +979,16 @@
       resumeRun();
       return;
     }
+    // Track fire keys independently — never mixed with movement keys
+    if (key === " " || key === "enter") fireHeld = true;
     keys.add(key);
     if (mode === "menu" && (key === "enter" || key === " ")) startRun();
   }
 
   function onKeyUp(event) {
-    keys.delete(event.key.toLowerCase());
+    const key = event.key.toLowerCase();
+    if (key === " " || key === "enter") fireHeld = false;
+    keys.delete(key);
   }
 
   function bindTouchControl(button) {
@@ -917,6 +1094,7 @@
     keys.clear();
     touchControls.clear();
     pointer.active = false;
+    fireHeld = false;
     if (mode === "playing") pauseRun();
   });
   canvas.addEventListener("pointerdown", event => {
