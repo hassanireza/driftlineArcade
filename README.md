@@ -74,37 +74,6 @@ This project was created to explore:
 
 ---
 
-## Project Structure
-
-```text
-/
-├── index.html
-├── styles.css
-├── script.js
-│
-├── skyfold/
-│   ├── index.html
-│   ├── game.js
-│   ├── entities.js
-│   ├── renderer.js
-│   ├── ui.js
-│   ├── leaderboard.js
-│   └── styles.css
-│
-├── voidrunner/
-│   ├── index.html
-│   ├── game.js
-│   ├── entities.js
-│   ├── renderer.js
-│   ├── ui.js
-│   ├── leaderboard.js
-│   └── styles.css
-│
-└── assets/
-```
-
----
-
 ## Design Philosophy
 
 ### Skyfold Aviary
