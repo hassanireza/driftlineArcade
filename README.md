@@ -232,11 +232,6 @@ Planned improvements include:
 
 ---
 
-## Credits
-
-**Design & Development**
-Driftline Arcade
-
 **Games**
 
 * Skyfold Aviary
