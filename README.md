@@ -1,4 +1,4 @@
- # Driftline Arcade
+# Driftline Arcade
 
 ![Driftline Arcade Banner](./assets/driftline-banner.png)
 
