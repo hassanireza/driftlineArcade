@@ -77,16 +77,19 @@ export function SkyfoldPage() {
   }, []);
 
   useEffect(() => {
+    let pointerPressed = false;
     const handlePointerMove = (event: PointerEvent) => {
       const canvas = canvasRef.current;
-      if (!canvas || mode !== 'playing') return;
+      if (!canvas || mode !== 'playing' || !pointerPressed) return;
       const rect = canvas.getBoundingClientRect();
       engineRef.current?.setPointer(event.clientX - rect.left, event.clientY - rect.top, true);
     };
-    const handlePointerDown = (event: PointerEvent) => handlePointerMove(event);
+    const handlePointerDown = (event: PointerEvent) => {
+      pointerPressed = true;
+      handlePointerMove(event);
+    };
     const handlePointerUp = () => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
+      pointerPressed = false;
       engineRef.current?.setPointer(0, 0, false);
     };
     const stage = canvasRef.current?.parentElement;
