@@ -59,7 +59,7 @@ export class SkyfoldEngine extends GameEngine {
   private pickupTimer = 0;
   private fireHeld = false;
 
-  private player: Player = { x: 0, y: 0, vx: 0, vy: 0, aim: -Math.PI / 2, bank: 0, invulnerable: 0 };
+  private player: Player = { x: 0, y: 0, vx: 0, vy: 0, aim: -Math.PI / 2, invulnerable: 0 };
   private terraces: Terrace[] = [];
   private motes: Mote[] = [];
   private sentries: Sentry[] = [];
@@ -165,7 +165,6 @@ export class SkyfoldEngine extends GameEngine {
       vx: 0,
       vy: 0,
       aim: -Math.PI / 2,
-      bank: 0,
       invulnerable: 2.2
     };
 
@@ -277,13 +276,8 @@ export class SkyfoldEngine extends GameEngine {
       targetAim = lerpAngle(this.player.aim, driftAim, pull * dt * 3);
     }
 
-    const rotateSpeed = pointer.active ? 28 : 8;
+    const rotateSpeed = pointer.active ? 20 : 11;
     this.player.aim = lerpAngle(this.player.aim, targetAim, Math.min(1, rotateSpeed * dt));
-
-    // The kite itself only banks gently with horizontal motion, like a real
-    // kite riding the wind, instead of spinning to face the aim/pointer.
-    const targetBank = clamp(this.player.vx / maxSpeed, -1, 1) * 0.5;
-    this.player.bank += (targetBank - this.player.bank) * Math.min(1, 6 * dt);
 
     if (this.isFiring()) this.fireLaser();
   }
@@ -739,26 +733,13 @@ export class SkyfoldEngine extends GameEngine {
     const p = this.player;
     const flicker = p.invulnerable > 0 && Math.floor(p.invulnerable * 14) % 2 ? 0.48 : 1;
 
-    // ── Aim indicator: a faint line toward the laser direction, kept
-    // separate from the kite body so the kite itself never spins to
-    // "point" at the cursor like a mouse pointer.
-    ctx.save();
-    ctx.globalAlpha = flicker * 0.5;
-    ctx.strokeStyle = 'rgba(124, 70, 51, .55)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([2, 5]);
-    ctx.beginPath();
-    ctx.moveTo(p.x + Math.cos(p.aim) * 14, p.y + Math.sin(p.aim) * 14);
-    ctx.lineTo(p.x + Math.cos(p.aim) * 30, p.y + Math.sin(p.aim) * 30);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
-
-    // ── Kite body: classic diamond silhouette with a cross-spar and a
-    // curling tail, banking gently with horizontal drift.
+    // Kite body: classic diamond silhouette with a cross-spar and a
+    // curling tail. Rotated so the nose always points along `aim`, the
+    // same angle the laser fires along, so the shot always visibly comes
+    // from the kite's nose.
     ctx.save();
     ctx.translate(p.x, p.y);
-    ctx.rotate(p.bank);
+    ctx.rotate(p.aim + Math.PI / 2);
     ctx.globalAlpha = flicker;
     ctx.shadowColor = 'rgba(106, 93, 143, .42)';
     ctx.shadowBlur = 18;

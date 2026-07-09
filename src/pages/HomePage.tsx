@@ -42,9 +42,7 @@ export function HomePage() {
           features={[
             'Charge-based beam with visible cooldown rhythm',
             'Procedural terrace layers that escalate in density',
-            'Touch-friendly directional controls for handheld play',
-            'Local leaderboard tracking your best layer and run time',
-            'Mid-flight repair pickups from wave three onward'
+            'Touch-friendly directional controls for handheld play'
           ]}
           ctaLabel="Play Skyfold"
           ctaHref="/skyfold"
@@ -71,9 +69,7 @@ export function HomePage() {
           features={[
             'Infinite ammo laser for constant offensive pressure',
             'Run, jump, and slide layered into tight sequences',
-            'High-contrast sci-fi HUD with live score and lives',
-            'Persistent on-device leaderboard for best score',
-            'Shield and extra-life pickups along the route'
+            'High-contrast sci-fi HUD with live score and lives'
           ]}
           ctaLabel="Play Voidrunner"
           ctaHref="/voidrunner"

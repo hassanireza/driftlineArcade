@@ -157,11 +157,13 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  justify-content: safe flex-end;
   height: 100%;
   overflow-y: auto;
   scrollbar-width: none;
-  padding: clamp(32px, 4vw, 64px);
-  padding-top: 100px;
+  padding: clamp(24px, 3.4vw, 56px);
+  padding-top: 96px;
+  gap: 2px;
   /* subtle gradient shield so text stays readable over art */
   background: linear-gradient(
     to top,
@@ -202,9 +204,9 @@ a { color: inherit; text-decoration: none; }
 /* ── Title ───────────────────────────────────────────────── */
 .panel-title {
   font-family: 'Cormorant Garamond', serif; font-style: italic;
-  font-size: clamp(3rem, 7vw, 7rem);
+  font-size: clamp(2.4rem, 5.6vw, 5.6rem);
   letter-spacing: 0.04em;
-  line-height: 0.92;
+  line-height: 0.94;
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -217,11 +219,11 @@ a { color: inherit; text-decoration: none; }
 
 /* ── Tagline ─────────────────────────────────────────────── */
 .tagline {
-  font-size: clamp(0.85rem, 1.2vw, 1.05rem);
+  font-size: clamp(0.8rem, 1.1vw, 0.98rem);
   font-weight: 300;
-  line-height: 1.6;
+  line-height: 1.5;
   max-width: 36ch;
-  margin-top: 10px;
+  margin-top: 6px;
   opacity: 0.8;
 }
 
@@ -232,7 +234,7 @@ a { color: inherit; text-decoration: none; }
 .reveal {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   overflow: hidden;
   max-height: 0;
   opacity: 0;
@@ -245,17 +247,17 @@ a { color: inherit; text-decoration: none; }
 
 .panel:hover .reveal,
 .panel:focus-visible .reveal {
-  max-height: 480px;
+  max-height: 420px;
   opacity: 1;
   transform: translateY(0);
 }
 
 .description {
-  font-size: 0.88rem;
-  line-height: 1.75;
+  font-size: 0.82rem;
+  line-height: 1.6;
   font-weight: 300;
   max-width: 40ch;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .panel-sky  .description { color: var(--sky-deep); }
@@ -266,12 +268,12 @@ a { color: inherit; text-decoration: none; }
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 5px;
+  margin-top: 2px;
 }
 
 .feature-list li {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 500;
@@ -296,7 +298,7 @@ a { color: inherit; text-decoration: none; }
 .panel-void .feature-list li::before { background: var(--void-acc); }
 
 /* ── CTA Button ──────────────────────────────────────────── */
-.cta-row { margin-top: 14px; }
+.cta-row { margin-top: 8px; }
 
 .btn {
   display: inline-flex;

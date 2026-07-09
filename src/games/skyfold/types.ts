@@ -4,7 +4,6 @@ export interface Player {
   vx: number;
   vy: number;
   aim: number;
-  bank: number;
   invulnerable: number;
 }
 

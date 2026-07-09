@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Driftline Arcade</title>
+    <script>
+      // GitHub Pages SPA redirect (rafgraph/spa-github-pages technique).
+      // Encodes the requested path into a query string on /404.html so the
+      // browser lands back on index.html, which then restores the real
+      // path with history.replaceState before the router mounts.
+      var segmentCount = 1; // number of path segments to keep before /driftlineArcade base
+      var l = window.location;
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?p=/' +
+        l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body></body>
+</html>

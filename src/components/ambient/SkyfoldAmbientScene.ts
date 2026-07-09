@@ -172,12 +172,11 @@ export class SkyfoldAmbientScene extends GameEngine {
 
   private drawGlider(): void {
     const ctx = this.ctx;
-    const { px, py } = this.gliderPos(this.elapsed);
-    const bank = Math.sin(this.elapsed * 0.4) * 0.2;
+    const { px, py, aim } = this.gliderPos(this.elapsed);
 
     ctx.save();
     ctx.translate(px, py);
-    ctx.rotate(bank);
+    ctx.rotate(aim + Math.PI / 2);
     ctx.shadowColor = 'rgba(106,93,143,0.42)';
     ctx.shadowBlur = 18;
 
