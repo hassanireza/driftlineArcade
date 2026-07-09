@@ -30,7 +30,7 @@ export class VoidrunnerAmbientScene extends GameEngine {
     this.running = true;
   }
 
-  protected onResize(): void {
+  protected override onResize(): void {
     const count = Math.min(120, Math.max(40, Math.round((this.width * this.height) / 6000)));
     this.stars = Array.from({ length: count }, () => ({
       x: Math.random() * this.width,

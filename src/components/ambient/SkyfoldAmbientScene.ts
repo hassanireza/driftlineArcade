@@ -37,7 +37,7 @@ export class SkyfoldAmbientScene extends GameEngine {
     this.running = true;
   }
 
-  protected onResize(): void {
+  protected override onResize(): void {
     const moteCount = Math.min(70, Math.max(28, Math.round((this.width * this.height) / 14000)));
     this.motes = Array.from({ length: moteCount }, () => this.makeMote(true));
     const terraceCount = Math.max(7, Math.round(this.height / 100));
@@ -172,33 +172,66 @@ export class SkyfoldAmbientScene extends GameEngine {
 
   private drawGlider(): void {
     const ctx = this.ctx;
-    const { px, py, aim } = this.gliderPos(this.elapsed);
+    const { px, py } = this.gliderPos(this.elapsed);
+    const bank = Math.sin(this.elapsed * 0.4) * 0.2;
+
     ctx.save();
     ctx.translate(px, py);
-    ctx.rotate(aim + Math.PI / 2);
+    ctx.rotate(bank);
     ctx.shadowColor = 'rgba(106,93,143,0.42)';
     ctx.shadowBlur = 18;
-    ctx.fillStyle = '#cfc6b8';
+
+    const top = -22;
+    const bottom = 16;
+    const side = 15;
+    const waist = -2;
+
+    // Curling tail
+    ctx.strokeStyle = 'rgba(140,122,78,.65)';
+    ctx.lineWidth = 1.6;
+    const tailWave = Math.sin(this.elapsed * 5) * 5;
+    ctx.beginPath();
+    ctx.moveTo(0, bottom);
+    ctx.quadraticCurveTo(8 + tailWave, bottom + 12, 0, bottom + 24);
+    ctx.quadraticCurveTo(-8 - tailWave, bottom + 36, 0, bottom + 48);
+    ctx.stroke();
+
+    // Diamond sail, two panels
     ctx.strokeStyle = '#3a3540';
     ctx.lineWidth = 1.8;
+
+    ctx.fillStyle = '#cfc6b8';
     ctx.beginPath();
-    ctx.moveTo(0, -24);
-    ctx.lineTo(18, 15);
-    ctx.lineTo(4, 9);
-    ctx.lineTo(0, 22);
-    ctx.lineTo(-4, 9);
-    ctx.lineTo(-18, 15);
+    ctx.moveTo(0, top);
+    ctx.quadraticCurveTo(-side * 0.6, waist, -side, bottom * 0.55);
+    ctx.lineTo(0, bottom);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = '#7c4633';
+
+    ctx.fillStyle = '#a89c86';
     ctx.beginPath();
-    ctx.moveTo(0, -19);
-    ctx.lineTo(7, 7);
-    ctx.lineTo(0, 13);
-    ctx.lineTo(-7, 7);
+    ctx.moveTo(0, top);
+    ctx.quadraticCurveTo(side * 0.6, waist, side, bottom * 0.55);
+    ctx.lineTo(0, bottom);
     ctx.closePath();
     ctx.fill();
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(58,53,64,.55)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(0, top);
+    ctx.lineTo(0, bottom);
+    ctx.moveTo(-side, bottom * 0.55);
+    ctx.lineTo(side, bottom * 0.55);
+    ctx.stroke();
+
+    ctx.fillStyle = '#7c4633';
+    ctx.beginPath();
+    ctx.arc(0, waist, 2.6, 0, Math.PI * 2);
+    ctx.fill();
+
     ctx.restore();
   }
 

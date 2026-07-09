@@ -152,7 +152,7 @@ export class VoidrunnerEngine extends GameEngine {
     this.input.setTouch(control, active);
   }
 
-  dispose(): void {
+  override dispose(): void {
     super.dispose();
     this.input.dispose();
   }

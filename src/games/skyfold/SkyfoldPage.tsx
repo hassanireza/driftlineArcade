@@ -29,16 +29,15 @@ const leaderboard = new LeaderboardStore<SkyfoldScoreEntry>({
 
 function LeaderboardList({ entries }: { entries: SkyfoldScoreEntry[] }) {
   if (entries.length === 0) {
-    return <p className={styles.emptyState}>No runs saved on this device yet. Fly to set the first record.</p>;
+    return <p className={styles.emptyRow}>No runs saved on this device yet. Fly to set the first record.</p>;
   }
   return (
     <ol aria-label="Leaderboard">
       {entries.map((entry, index) => (
-        <li key={`${entry.date}-${index}`} className={styles.lbRow}>
-          <span className={styles.lbRank}>{index + 1}</span>
-          <span className={styles.lbName}>{entry.name}</span>
-          <span className={styles.lbWave}>Layer {entry.wave}</span>
-          <span className={styles.lbScore}>{entry.score}</span>
+        <li key={`${entry.date}-${index}`} className={styles.scoreRow}>
+          <span className={styles.scoreRank}>{index + 1}</span>
+          <b>{entry.name} &middot; Layer {entry.wave}</b>
+          <span>{entry.score}</span>
         </li>
       ))}
     </ol>

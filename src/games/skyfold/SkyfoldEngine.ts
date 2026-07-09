@@ -59,7 +59,7 @@ export class SkyfoldEngine extends GameEngine {
   private pickupTimer = 0;
   private fireHeld = false;
 
-  private player: Player = { x: 0, y: 0, vx: 0, vy: 0, aim: -Math.PI / 2, invulnerable: 0 };
+  private player: Player = { x: 0, y: 0, vx: 0, vy: 0, aim: -Math.PI / 2, bank: 0, invulnerable: 0 };
   private terraces: Terrace[] = [];
   private motes: Mote[] = [];
   private sentries: Sentry[] = [];
@@ -135,7 +135,7 @@ export class SkyfoldEngine extends GameEngine {
     this.input.pointer.active = active;
   }
 
-  dispose(): void {
+  override dispose(): void {
     super.dispose();
     this.input.dispose();
   }
@@ -165,6 +165,7 @@ export class SkyfoldEngine extends GameEngine {
       vx: 0,
       vy: 0,
       aim: -Math.PI / 2,
+      bank: 0,
       invulnerable: 2.2
     };
 
@@ -172,7 +173,7 @@ export class SkyfoldEngine extends GameEngine {
     this.motes = Array.from({ length: this.getMoteCount() }, () => this.makeMote(true));
   }
 
-  protected onResize(oldWidth: number, oldHeight: number): void {
+  protected override onResize(oldWidth: number, oldHeight: number): void {
     this.player.x = clamp(this.player.x || this.width * 0.5, PLAYER_RADIUS, this.width - PLAYER_RADIUS);
     this.player.y = clamp(this.player.y || this.height * 0.62, PLAYER_RADIUS, this.height - PLAYER_RADIUS);
     if (Math.abs(oldWidth - this.width) > 24 || Math.abs(oldHeight - this.height) > 24) {
@@ -278,6 +279,11 @@ export class SkyfoldEngine extends GameEngine {
 
     const rotateSpeed = pointer.active ? 28 : 8;
     this.player.aim = lerpAngle(this.player.aim, targetAim, Math.min(1, rotateSpeed * dt));
+
+    // The kite itself only banks gently with horizontal motion, like a real
+    // kite riding the wind, instead of spinning to face the aim/pointer.
+    const targetBank = clamp(this.player.vx / maxSpeed, -1, 1) * 0.5;
+    this.player.bank += (targetBank - this.player.bank) * Math.min(1, 6 * dt);
 
     if (this.isFiring()) this.fireLaser();
   }
@@ -731,44 +737,92 @@ export class SkyfoldEngine extends GameEngine {
   private drawPlayer(): void {
     const ctx = this.ctx;
     const p = this.player;
+    const flicker = p.invulnerable > 0 && Math.floor(p.invulnerable * 14) % 2 ? 0.48 : 1;
+
+    // ── Aim indicator: a faint line toward the laser direction, kept
+    // separate from the kite body so the kite itself never spins to
+    // "point" at the cursor like a mouse pointer.
+    ctx.save();
+    ctx.globalAlpha = flicker * 0.5;
+    ctx.strokeStyle = 'rgba(124, 70, 51, .55)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([2, 5]);
+    ctx.beginPath();
+    ctx.moveTo(p.x + Math.cos(p.aim) * 14, p.y + Math.sin(p.aim) * 14);
+    ctx.lineTo(p.x + Math.cos(p.aim) * 30, p.y + Math.sin(p.aim) * 30);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // ── Kite body: classic diamond silhouette with a cross-spar and a
+    // curling tail, banking gently with horizontal drift.
     ctx.save();
     ctx.translate(p.x, p.y);
-    ctx.rotate(p.aim + Math.PI / 2);
-    ctx.globalAlpha = p.invulnerable > 0 && Math.floor(p.invulnerable * 14) % 2 ? 0.48 : 1;
+    ctx.rotate(p.bank);
+    ctx.globalAlpha = flicker;
     ctx.shadowColor = 'rgba(106, 93, 143, .42)';
     ctx.shadowBlur = 18;
 
-    ctx.fillStyle = '#cfc6b8';
+    const top = -22;
+    const bottom = 16;
+    const side = 15;
+    const waist = -2;
+
+    // Tail: bowed ribbon with alternating bows, trailing below the kite.
+    ctx.strokeStyle = 'rgba(140, 122, 78, .65)';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(0, bottom);
+    const tailWave = Math.sin(this.elapsed * 5) * 5;
+    ctx.quadraticCurveTo(8 + tailWave, bottom + 12, 0, bottom + 24);
+    ctx.quadraticCurveTo(-8 - tailWave, bottom + 36, 0, bottom + 48);
+    ctx.stroke();
+    for (const t of [12, 24, 36]) {
+      const bx = Math.sin(this.elapsed * 5 + t * 0.3) * (6 + tailWave * 0.4);
+      ctx.beginPath();
+      ctx.ellipse(bx, bottom + t, 4, 2.2, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(124, 70, 51, .5)';
+      ctx.stroke();
+    }
+
+    // Left and right sail panels (two-tone diamond fabric).
     ctx.strokeStyle = '#3a3540';
     ctx.lineWidth = 1.8;
+
+    ctx.fillStyle = '#cfc6b8';
     ctx.beginPath();
-    ctx.moveTo(0, -24);
-    ctx.lineTo(18, 15);
-    ctx.lineTo(4, 9);
-    ctx.lineTo(0, 22);
-    ctx.lineTo(-4, 9);
-    ctx.lineTo(-18, 15);
+    ctx.moveTo(0, top);
+    ctx.quadraticCurveTo(-side * 0.6, waist, -side, bottom * 0.55);
+    ctx.lineTo(0, bottom);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
+    ctx.fillStyle = '#a89c86';
+    ctx.beginPath();
+    ctx.moveTo(0, top);
+    ctx.quadraticCurveTo(side * 0.6, waist, side, bottom * 0.55);
+    ctx.lineTo(0, bottom);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Central spine and cross-spar, revealing the kite's frame.
+    ctx.strokeStyle = 'rgba(58, 53, 64, .55)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(0, top);
+    ctx.lineTo(0, bottom);
+    ctx.moveTo(-side, bottom * 0.55);
+    ctx.lineTo(side, bottom * 0.55);
+    ctx.stroke();
+
+    // Hub accent where the spars cross.
     ctx.fillStyle = '#7c4633';
     ctx.beginPath();
-    ctx.moveTo(0, -19);
-    ctx.lineTo(7, 7);
-    ctx.lineTo(0, 13);
-    ctx.lineTo(-7, 7);
-    ctx.closePath();
+    ctx.arc(0, waist, 2.6, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = 'rgba(106, 93, 143, .28)';
-    ctx.beginPath();
-    ctx.moveTo(0, -22);
-    ctx.lineTo(0, 20);
-    ctx.moveTo(-15, 12);
-    ctx.lineTo(0, 1);
-    ctx.lineTo(15, 12);
-    ctx.stroke();
     ctx.restore();
   }
 
