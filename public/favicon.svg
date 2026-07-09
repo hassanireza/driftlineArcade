@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="skyHalf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f6c5b2"/>
+      <stop offset="1" stop-color="#79b5c6"/>
+    </linearGradient>
+    <linearGradient id="voidHalf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c1030"/>
+      <stop offset="1" stop-color="#07050a"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#07050a"/>
+  <path d="M6 8h24v48H10a4 4 0 0 1-4-4Z" fill="url(#skyHalf)"/>
+  <path d="M34 8h24v44a4 4 0 0 1-4 4H34Z" fill="url(#voidHalf)"/>
+  <path d="M20 18 L27 32 L21 32 L26 46 L14 30 L20 30 Z" fill="#fff8eb" stroke="#6a5d8f" stroke-width="1"/>
+  <rect x="41" y="34" width="12" height="4" fill="#22d3ee"/>
+  <rect x="41" y="41" width="8" height="10" fill="#a78bfa"/>
+</svg>

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 220" width="980" height="220" font-family="Space Grotesk, Inter, system-ui, sans-serif">
+  <defs>
+    <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#7c8aa5"/>
+    </marker>
+  </defs>
+  <rect width="980" height="220" fill="#07050a"/>
+  <text x="30" y="34" fill="#f4effb" font-size="18" font-weight="700">CI / CD Pipeline — GitHub Actions</text>
+
+  <g>
+    <rect x="30" y="66" width="170" height="86" rx="10" fill="#17111f" stroke="#342344"/>
+    <text x="46" y="94" fill="#f4effb" font-size="13" font-weight="700">git push main</text>
+    <text x="46" y="114" fill="#a79ab9" font-size="11">Developer commits</text>
+    <text x="46" y="130" fill="#a79ab9" font-size="11">or dispatch trigger</text>
+  </g>
+
+  <line x1="200" y1="109" x2="240" y2="109" stroke="#7c8aa5" marker-end="url(#arrow2)"/>
+
+  <g>
+    <rect x="240" y="66" width="180" height="86" rx="10" fill="#17111f" stroke="#342344"/>
+    <text x="256" y="94" fill="#f4effb" font-size="13" font-weight="700">Lint + Type-check</text>
+    <text x="256" y="114" fill="#a79ab9" font-size="11">oxlint</text>
+    <text x="256" y="130" fill="#a79ab9" font-size="11">tsc -b (strict)</text>
+  </g>
+
+  <line x1="420" y1="109" x2="460" y2="109" stroke="#7c8aa5" marker-end="url(#arrow2)"/>
+
+  <g>
+    <rect x="460" y="66" width="180" height="86" rx="10" fill="#17111f" stroke="#342344"/>
+    <text x="476" y="94" fill="#f4effb" font-size="13" font-weight="700">Build</text>
+    <text x="476" y="114" fill="#a79ab9" font-size="11">vite build (production)</text>
+    <text x="476" y="130" fill="#a79ab9" font-size="11">GITHUB_PAGES=true</text>
+  </g>
+
+  <line x1="640" y1="109" x2="680" y2="109" stroke="#7c8aa5" marker-end="url(#arrow2)"/>
+
+  <g>
+    <rect x="680" y="66" width="140" height="86" rx="10" fill="#1a1424" stroke="#22d3ee"/>
+    <text x="696" y="94" fill="#f4effb" font-size="13" font-weight="700">Upload</text>
+    <text x="696" y="114" fill="#a79ab9" font-size="11">Pages artifact</text>
+    <text x="696" y="130" fill="#a79ab9" font-size="11">(dist folder)</text>
+  </g>
+
+  <line x1="820" y1="109" x2="860" y2="109" stroke="#7c8aa5" marker-end="url(#arrow2)"/>
+
+  <g>
+    <rect x="860" y="66" width="90" height="86" rx="10" fill="#1a1424" stroke="#e77b69"/>
+    <text x="872" y="94" fill="#f4effb" font-size="13" font-weight="700">Deploy</text>
+    <text x="872" y="114" fill="#a79ab9" font-size="11">GitHub</text>
+    <text x="872" y="130" fill="#a79ab9" font-size="11">Pages</text>
+  </g>
+
+  <text x="30" y="196" fill="#756684" font-size="12">Pull requests trigger a separate CI workflow that lints, type-checks and builds without deploying.</text>
+</svg>
