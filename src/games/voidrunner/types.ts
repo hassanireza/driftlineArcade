@@ -27,7 +27,7 @@ export interface Obstacle {
 }
 
 export interface Pickup {
-  type: 'life' | 'shield';
+  type: 'life' | 'shield' | 'gun';
   x: number;
   y: number;
   w: number;
@@ -82,6 +82,11 @@ export interface VoidrunnerHud {
   best: number;
   lives: number;
   maxLives: number;
+  speed: number;
+  bombCharges: number;
+  maxBombs: number;
+  slideStamina: number;
+  gunActive: boolean;
 }
 
 export interface VoidrunnerRunResult {

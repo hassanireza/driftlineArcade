@@ -1,0 +1,49 @@
+.gate {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 32px;
+  text-align: center;
+  background: #050506;
+  color: #e6e0d3;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+}
+
+.phone {
+  width: 46px;
+  height: 74px;
+  border: 2px solid #e6e0d3;
+  border-radius: 8px;
+  position: relative;
+  animation: rotateHint 1.8s ease-in-out infinite;
+  margin-bottom: 6px;
+}
+.phoneBody { position: absolute; inset: 6px; border: 1px solid rgba(230, 224, 211, 0.4); border-radius: 3px; }
+
+@keyframes rotateHint {
+  0%, 20% { transform: rotate(0deg); }
+  50%, 70% { transform: rotate(-90deg); }
+  100% { transform: rotate(-90deg); }
+}
+
+.title {
+  margin: 0;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+}
+
+.copy {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: #8d8579;
+  line-height: 1.5;
+}

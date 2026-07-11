@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './VoidrunnerPage.module.css';
 import { VoidrunnerEngine } from './VoidrunnerEngine';
 import { LeaderboardStore } from '../../engine/LeaderboardStore';
+import { OrientationGate } from '../../components/touch/OrientationGate';
+import { TouchJoystick } from '../../components/touch/TouchJoystick';
+import { TouchActionButton } from '../../components/touch/TouchActionButton';
+import touchStyles from '../../components/touch/TouchControls.module.css';
 import type { VoidrunnerHud, VoidrunnerMode, VoidrunnerScoreEntry } from './types';
 
 const leaderboard = new LeaderboardStore<VoidrunnerScoreEntry>({
@@ -52,7 +55,17 @@ export function VoidrunnerPage() {
 
   const [scores, setScores] = useState<VoidrunnerScoreEntry[]>(() => leaderboard.load());
   const [mode, setMode] = useState<VoidrunnerMode>('ready');
-  const [hud, setHud] = useState<VoidrunnerHud>({ score: 0, best: leaderboard.best(), lives: 3, maxLives: 5 });
+  const [hud, setHud] = useState<VoidrunnerHud>({
+    score: 0,
+    best: leaderboard.best(),
+    lives: 3,
+    maxLives: 5,
+    speed: 3.4,
+    bombCharges: 2,
+    maxBombs: 2,
+    slideStamina: 100,
+    gunActive: false
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -80,18 +93,9 @@ export function VoidrunnerPage() {
     };
   }, []);
 
-  const bindHold = useCallback((onDown: () => void, onUp?: () => void) => ({
-    onPointerDown: (event: ReactPointerEvent) => {
-      event.preventDefault();
-      onDown();
-    },
-    onPointerUp: (event: ReactPointerEvent) => {
-      event.preventDefault();
-      onUp?.();
-    },
-    onPointerCancel: () => onUp?.(),
-    onPointerLeave: () => onUp?.()
-  }), []);
+  const handleJoystick = useCallback((x: number, y: number, active: boolean) => {
+    engineRef.current?.setJoystick(x, y, active);
+  }, []);
 
   const overlayCopy = useMemo(() => {
     if (mode === 'paused') {
@@ -138,8 +142,10 @@ export function VoidrunnerPage() {
             <div className={styles.metric}><span>Lives</span><strong>{hud.lives} / {hud.maxLives}</strong></div>
             <div className={`${styles.metric} ${styles.laserMeter}`}>
               <span>Laser</span>
-              <strong>INF</strong>
+              <strong>{hud.gunActive ? 'Rapid' : 'INF'}</strong>
             </div>
+            <div className={styles.metric}><span>Bombs</span><strong>{hud.bombCharges}/{hud.maxBombs}</strong></div>
+            <div className={styles.metric}><span>Slide</span><strong>{Math.round(hud.slideStamina)}%</strong></div>
           </div>
 
           <button
@@ -160,23 +166,26 @@ export function VoidrunnerPage() {
         </section>
 
         <section className={styles.mobileControls} aria-label="Touch controls">
-          <button className={styles.controlButton} type="button" {...bindHold(() => engineRef.current?.jump())}>Jump</button>
-          <button
-            className={styles.controlButton}
-            type="button"
-            {...bindHold(
-              () => engineRef.current?.slide(true),
-              () => engineRef.current?.slide(false)
-            )}
-          >
-            Slide
-          </button>
-          <button className={styles.controlButton} type="button" {...bindHold(() => engineRef.current?.fireLaser())}>Laser</button>
-          <button className={styles.controlButton} type="button" onClick={() => engineRef.current?.togglePause()}>
-            {mode === 'paused' ? 'Resume' : 'Pause'}
-          </button>
+          <TouchJoystick label="Move" onChange={handleJoystick} />
+          <div className={touchStyles.actionCluster}>
+            <TouchActionButton label="Jump" onPress={(active) => active && engineRef.current?.jump()} />
+            <TouchActionButton
+              label="Slide"
+              variant="secondary"
+              onPress={(active) => engineRef.current?.slide(active)}
+            />
+            <TouchActionButton label="Fire" onPress={(active) => active && engineRef.current?.fireLaser()} />
+            <TouchActionButton
+              label="Bomb"
+              sublabel={`${hud.bombCharges}/${hud.maxBombs}`}
+              variant="secondary"
+              disabled={hud.bombCharges <= 0}
+              onPress={(active) => active && engineRef.current?.useBomb()}
+            />
+          </div>
         </section>
       </main>
+      <OrientationGate gameName="Voidrunner" />
 
       {showOverlay && (
         <section className={styles.overlay}>
@@ -197,7 +206,7 @@ export function VoidrunnerPage() {
                   </button>
                 )}
               </div>
-              <p className={styles.hint}>Space / Up jumps &middot; Down slides &middot; F / Z fires &middot; P / Esc pauses</p>
+              <p className={styles.hint}>Space / Up jumps &middot; Down slides (stamina limited) &middot; F / Z fires &middot; B or Bomb clears the screen &middot; touch joystick + buttons on mobile &middot; P / Esc pauses</p>
 
               {mode === 'ready' && (
                 <div className={styles.leaderboardPanel}>

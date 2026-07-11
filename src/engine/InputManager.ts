@@ -11,6 +11,8 @@ export class InputManager {
   readonly keys = new Set<string>();
   readonly touch = new Set<string>();
   readonly pointer = { x: 0, y: 0, active: false };
+  /** Analog vector (-1..1 on each axis) driven by an on-screen virtual joystick. */
+  readonly joystick = { x: 0, y: 0, active: false };
 
   private target: Window;
   private onKeyDown = (event: KeyboardEvent) => {
@@ -28,6 +30,9 @@ export class InputManager {
     this.keys.clear();
     this.touch.clear();
     this.pointer.active = false;
+    this.joystick.x = 0;
+    this.joystick.y = 0;
+    this.joystick.active = false;
     this.blurCallback?.();
   };
 
@@ -59,6 +64,13 @@ export class InputManager {
   setTouch(control: string, active: boolean): void {
     if (active) this.touch.add(control);
     else this.touch.delete(control);
+  }
+
+  /** Called by the on-screen TouchJoystick widget with a normalized -1..1 vector. */
+  setJoystick(x: number, y: number, active: boolean): void {
+    this.joystick.x = x;
+    this.joystick.y = y;
+    this.joystick.active = active;
   }
 
   isDown(...keys: string[]): boolean {

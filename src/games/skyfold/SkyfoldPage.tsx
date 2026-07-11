@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './SkyfoldPage.module.css';
 import { SkyfoldEngine } from './SkyfoldEngine';
@@ -6,6 +6,10 @@ import { SkyfoldAmbientScene } from '../../components/ambient/SkyfoldAmbientScen
 import { AmbientCanvas } from '../../components/ambient/AmbientCanvas';
 import { LeaderboardStore } from '../../engine/LeaderboardStore';
 import { formatTime, sanitizeName } from '../../engine/MathUtils';
+import { OrientationGate } from '../../components/touch/OrientationGate';
+import { TouchJoystick } from '../../components/touch/TouchJoystick';
+import { TouchActionButton } from '../../components/touch/TouchActionButton';
+import touchStyles from '../../components/touch/TouchControls.module.css';
 import type { SkyfoldHud, SkyfoldMode, SkyfoldRunResult, SkyfoldScoreEntry } from './types';
 
 const leaderboard = new LeaderboardStore<SkyfoldScoreEntry>({
@@ -49,7 +53,15 @@ export function SkyfoldPage() {
   const engineRef = useRef<SkyfoldEngine | null>(null);
 
   const [mode, setMode] = useState<SkyfoldMode>('menu');
-  const [hud, setHud] = useState<SkyfoldHud>({ score: 0, wave: 1, health: 100, laserReady: true, chargeFraction: 1 });
+  const [hud, setHud] = useState<SkyfoldHud>({
+    score: 0,
+    wave: 1,
+    health: 100,
+    laserReady: true,
+    chargeFraction: 1,
+    bombCharges: 3,
+    maxBombs: 3
+  });
   const [runResult, setRunResult] = useState<SkyfoldRunResult | null>(null);
   const [scores, setScores] = useState<SkyfoldScoreEntry[]>(() => leaderboard.load());
   const [pilotName, setPilotName] = useState('Pilot');
@@ -106,18 +118,9 @@ export function SkyfoldPage() {
   const healthLabel = `${Math.max(0, hud.health)}%`;
   const chargePercent = useMemo(() => `${Math.round(hud.chargeFraction * 100)}%`, [hud.chargeFraction]);
 
-  const bindTouch = (control: string) => ({
-    onPointerDown: (event: React.PointerEvent) => {
-      event.preventDefault();
-      engineRef.current?.setTouchControl(control, true);
-    },
-    onPointerUp: (event: React.PointerEvent) => {
-      event.preventDefault();
-      engineRef.current?.setTouchControl(control, false);
-    },
-    onPointerCancel: () => engineRef.current?.setTouchControl(control, false),
-    onPointerLeave: () => engineRef.current?.setTouchControl(control, false)
-  });
+  const handleJoystick = useCallback((x: number, y: number, active: boolean) => {
+    engineRef.current?.setJoystick(x, y, active);
+  }, []);
 
   const handleSaveScore = (event: React.FormEvent) => {
     event.preventDefault();
@@ -156,6 +159,7 @@ export function SkyfoldPage() {
                 <b style={{ width: chargePercent }} />
               </i>
             </div>
+            <div className={styles.metric}><span>Bombs</span><strong>{hud.bombCharges}/{hud.maxBombs}</strong></div>
           </div>
 
           <button
@@ -175,15 +179,20 @@ export function SkyfoldPage() {
         </section>
 
         <section className={styles.mobileControls} aria-label="Touch controls">
-          <div className={styles.dpad}>
-            <button className={styles.up} type="button" aria-label="Move up" {...bindTouch('up')}>&#9650;</button>
-            <button className={styles.left} type="button" aria-label="Move left" {...bindTouch('left')}>&#9664;</button>
-            <button className={styles.right} type="button" aria-label="Move right" {...bindTouch('right')}>&#9654;</button>
-            <button className={styles.down} type="button" aria-label="Move down" {...bindTouch('down')}>&#9660;</button>
+          <TouchJoystick label="Move" onChange={handleJoystick} />
+          <div className={touchStyles.actionCluster}>
+            <TouchActionButton label="Fire" onPress={(active) => engineRef.current?.setTouchControl('fire', active)} />
+            <TouchActionButton
+              label="Bomb"
+              sublabel={`${hud.bombCharges}/${hud.maxBombs}`}
+              variant="secondary"
+              disabled={hud.bombCharges <= 0}
+              onPress={(active) => engineRef.current?.setTouchControl('bomb', active)}
+            />
           </div>
-          <button className={styles.fireButton} type="button" aria-label="Fire laser" {...bindTouch('fire')}>Fire</button>
         </section>
       </main>
+      <OrientationGate gameName="Skyfold Aviary" />
 
       {mode === 'menu' && (
         <section className={styles.overlay}>
@@ -216,7 +225,7 @@ export function SkyfoldPage() {
                     Clear Scores
                   </button>
                 </div>
-                <p className={styles.hint}>Arrow keys &middot; WASD &middot; touch to move &nbsp;&middot;&nbsp; Space or Fire to shoot &nbsp;&middot;&nbsp; P / Esc to pause</p>
+                <p className={styles.hint}>Arrow keys &middot; WASD &middot; touch joystick to move &nbsp;&middot;&nbsp; Space or Fire to shoot &nbsp;&middot;&nbsp; B or Bomb to clear the screen &nbsp;&middot;&nbsp; P / Esc to pause</p>
                 <div className={styles.leaderboardPanel}>
                   <div className={styles.lbHeader}><span>Local Leaderboard</span><span>Top 10</span></div>
                   <LeaderboardList entries={scores} />

@@ -94,6 +94,8 @@ export interface SkyfoldHud {
   health: number;
   laserReady: boolean;
   chargeFraction: number;
+  bombCharges: number;
+  maxBombs: number;
 }
 
 export interface SkyfoldRunResult {

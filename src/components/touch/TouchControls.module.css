@@ -1,0 +1,87 @@
+.joystickZone {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  background: rgba(20, 19, 18, 0.38);
+  border: 1px solid rgba(230, 224, 211, 0.14);
+  touch-action: none;
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+}
+
+.joystickHint {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(230, 224, 211, 0.4);
+  pointer-events: none;
+}
+
+.joystickBase {
+  position: absolute;
+  width: 96px;
+  height: 96px;
+  margin-left: -48px;
+  margin-top: -48px;
+  border-radius: 50%;
+  background: rgba(61, 86, 82, 0.14);
+  border: 1px solid rgba(230, 224, 211, 0.18);
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.joystickThumb {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(230, 224, 211, 0.88);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.actionButton {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  border: 1px solid rgba(230, 224, 211, 0.2);
+  background: rgba(122, 42, 10, 0.5);
+  color: #e6e0d3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: auto;
+  touch-action: none;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3), 0 10px 22px rgba(0, 0, 0, 0.35);
+  transition: transform 0.1s, box-shadow 0.1s, opacity 0.15s;
+}
+.actionButton em { font-size: 0.52rem; font-style: normal; opacity: 0.7; }
+.actionButton:active { transform: translateY(3px) scale(0.96); box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3); }
+.actionButton:disabled { opacity: 0.35; pointer-events: none; }
+
+.actionButtonSecondary {
+  width: 56px;
+  height: 56px;
+  background: rgba(61, 86, 82, 0.42);
+}
+
+.actionCluster {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row-reverse;
+  align-content: flex-end;
+  justify-content: flex-end;
+  width: 152px;
+  gap: 8px;
+  pointer-events: none;
+}
+.actionCluster > * { pointer-events: auto; }

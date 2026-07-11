@@ -152,39 +152,10 @@
 /* ── Mobile controls ─────────────────────────────────── */
 .mobileControls {
   display:none; position:relative; z-index:5;
-  grid-template-columns:142px 92px;
   justify-content:space-between; align-items:end; gap:14px;
   padding:8px max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
   pointer-events:none; user-select:none;
 }
-
-.dpad {
-  display:grid; gap:5px; pointer-events:auto;
-  grid-template-columns:repeat(3,44px); grid-template-rows:repeat(3,44px);
-}
-.dpad button {
-  width:44px; height:44px; min-height:44px; padding:0;
-  background:var(--paper); border:1px solid var(--line);
-  box-shadow:0 4px 0 rgba(52,65,79,.10);
-  font-size:15px; color:var(--plum);
-  transition:transform .1s,box-shadow .1s;
-}
-.dpad button:active { transform:translateY(2px); box-shadow:0 2px 0 rgba(52,65,79,.08); }
-.dpad .up    { grid-column:2; grid-row:1; }
-.dpad .left  { grid-column:1; grid-row:2; }
-.dpad .right { grid-column:3; grid-row:2; }
-.dpad .down  { grid-column:2; grid-row:3; }
-
-.fireButton {
-  width:92px; height:92px; min-height:92px;
-  border:2px solid var(--ink); border-radius:50%;
-  background:var(--ink); color:var(--paperS);
-  font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.05rem; letter-spacing:.14em;
-  pointer-events:auto;
-  box-shadow:0 5px 0 rgba(52,65,79,.20);
-  transition:transform .1s,box-shadow .1s;
-}
-.fireButton:active { transform:translateY(3px); box-shadow:0 2px 0 rgba(52,65,79,.16); }
 
 /* ════════════════════════════════════════════════════════
    OVERLAY
@@ -407,7 +378,7 @@
    RESPONSIVE
    ════════════════════════════════════════════════════════ */
 @media (max-width:760px),(pointer:coarse) {
-  .mobileControls { display:grid; }
+  .mobileControls { display:flex; }
   .hud { grid-template-columns:minmax(0,1fr) auto; }
   .brandLockup { display:none; }
   .hudMetrics  { justify-content:flex-start; }
@@ -437,10 +408,6 @@
   .bodyBlock.padded { padding:14px 16px 20px; }
   .statRow    { grid-template-columns:1fr; }
   .nameForm   { grid-template-columns:1fr; }
-  .mobileControls { grid-template-columns:128px 82px; }
-  .dpad { grid-template-columns:repeat(3,40px); grid-template-rows:repeat(3,40px); }
-  .dpad button  { width:40px; height:40px; min-height:40px; }
-  .fireButton  { width:82px; height:82px; min-height:82px; }
 }
 
 @media (prefers-reduced-motion:reduce) {

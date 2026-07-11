@@ -125,13 +125,21 @@
 .iconButton svg { width:20px; height:20px; stroke:var(--ink); stroke-width:2.2; fill:none; stroke-linecap:round; }
 
 /* ── Stage ────────────────────────────────────────────── */
-.stageWrap { position:relative; min-height:0; background:#07050a; touch-action:none; }
-.voidRoot canvas { display:block; width:100%; height:100%; touch-action:none; }
+.stageWrap {
+  position:relative; min-height:0; background:#07050a; touch-action:none;
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.voidRoot canvas {
+  display:block; touch-action:none;
+  width:auto; height:auto;
+  max-width:100%; max-height:100%;
+  aspect-ratio:960 / 360;
+}
 
 /* ── Mobile controls ─────────────────────────────────── */
 .mobileControls {
   display:none; position:relative; z-index:5;
-  grid-template-columns:repeat(4,1fr);
+  justify-content:space-between; align-items:end;
   gap:8px;
   padding:8px max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
   pointer-events:none; user-select:none;
@@ -284,7 +292,7 @@
    RESPONSIVE
    ════════════════════════════════════════════════════════ */
 @media (max-width:760px),(pointer:coarse) {
-  .mobileControls { display:grid; }
+  .mobileControls { display:flex; }
   .hud { grid-template-columns:minmax(0,1fr) auto; }
   .brandLockup { display:none; }
   .hudMetrics  { justify-content:flex-start; }

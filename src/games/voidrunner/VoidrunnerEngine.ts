@@ -24,6 +24,12 @@ const JUMP = -12.4;
 const MAX_LIVES = 5;
 const PLAYER_X = 96;
 const LASER_COLOR = '#3d5652';
+const MAX_SLIDE_STAMINA = 100;
+const SLIDE_DRAIN_PER_STEP = 1.6;
+const SLIDE_REGEN_PER_STEP = 1.1;
+const MAX_BOMBS = 2;
+const GUN_BUFF_DURATION = 480; // steps (~8s at 60fps-equivalent step units)
+const MAX_SPEED = 13.5;
 
 export interface VoidrunnerCallbacks {
   onHudChange: (hud: VoidrunnerHud) => void;
@@ -52,6 +58,13 @@ export class VoidrunnerEngine extends GameEngine {
   private flash = 0;
   private deathTime = 0;
   private shotCooldown = 0;
+  private slideStamina = MAX_SLIDE_STAMINA;
+  private slideLocked = false;
+  private bombCharges = MAX_BOMBS;
+  private nextBombScore = 900;
+  private bombFlash = 0;
+  private gunBuff = 0;
+  private joystickJumpArmed = true;
 
   private stars: Star[] = [];
   private dunes: Dune[] = [];
@@ -131,6 +144,7 @@ export class VoidrunnerEngine extends GameEngine {
   slide(on: boolean): void {
     if (this.mode !== 'running') return;
     if (on) {
+      if (this.slideLocked) return;
       if (!this.player.onGround) this.player.fastFall = true;
       else this.player.sliding = true;
     } else {
@@ -139,17 +153,78 @@ export class VoidrunnerEngine extends GameEngine {
     }
   }
 
+  private updateSlideStamina(step: number): void {
+    if (this.player.sliding) {
+      this.slideStamina = Math.max(0, this.slideStamina - SLIDE_DRAIN_PER_STEP * step);
+      if (this.slideStamina <= 0) {
+        this.slideLocked = true;
+        this.player.sliding = false;
+      }
+    } else {
+      this.slideStamina = Math.min(MAX_SLIDE_STAMINA, this.slideStamina + SLIDE_REGEN_PER_STEP * step);
+      if (this.slideLocked && this.slideStamina >= MAX_SLIDE_STAMINA * 0.4) this.slideLocked = false;
+    }
+  }
+
+  /** Analog joystick: push down to slide/fast-fall, flick up to jump. */
+  private applyJoystickInput(): void {
+    const { joystick } = this.input;
+    if (!joystick.active) {
+      this.joystickJumpArmed = true;
+      return;
+    }
+    if (joystick.y > 0.45) {
+      this.slide(true);
+    } else {
+      this.slide(false);
+    }
+    if (joystick.y < -0.45) {
+      if (this.joystickJumpArmed) {
+        this.jump();
+        this.joystickJumpArmed = false;
+      }
+    } else {
+      this.joystickJumpArmed = true;
+    }
+  }
+
   fireLaser(): void {
     if (this.mode !== 'running' || this.shotCooldown > 0) return;
-    this.shotCooldown = 9;
+    const rapid = this.gunBuff > 0;
+    this.shotCooldown = rapid ? 4.5 : 9;
     const box = this.playerBox();
     const y = this.player.sliding ? box.y + 7 : box.y + Math.max(10, box.h * 0.38);
     this.lasers.push({ x: box.x + box.w + 6, y, w: 34, h: 5, vx: 19 });
+    if (rapid) this.lasers.push({ x: box.x + box.w + 6, y: y - 12, w: 34, h: 5, vx: 19 });
     this.burst(box.x + box.w + 10, y + 2, 4, LASER_COLOR, 1.4, -0.4);
   }
 
   setTouchControl(control: string, active: boolean): void {
     this.input.setTouch(control, active);
+  }
+
+  setJoystick(x: number, y: number, active: boolean): void {
+    this.input.setJoystick(x, y, active);
+  }
+
+  /**
+   * Screen-wipe ability: clears every obstacle and enemy shot currently on
+   * screen for a burst of score. Gives the player a real panic button
+   * against a dense cluster instead of only jump/slide/shoot.
+   */
+  useBomb(): void {
+    if (this.mode !== 'running' || this.bombCharges <= 0) return;
+    this.bombCharges -= 1;
+    this.bombFlash = 14;
+    this.shake = Math.max(this.shake, 10);
+    for (const obstacle of this.obstacles) {
+      if (!obstacle.alive) continue;
+      obstacle.alive = false;
+      this.score += 15;
+      const box = this.obstacleBox(obstacle);
+      this.burst(box.x + box.w / 2, box.y + box.h / 2, 14, '#8c5a3e', 5, -2);
+    }
+    this.enemyShots = [];
   }
 
   override dispose(): void {
@@ -185,6 +260,13 @@ export class VoidrunnerEngine extends GameEngine {
     this.flash = 0;
     this.deathTime = 0;
     this.shotCooldown = 0;
+    this.slideStamina = MAX_SLIDE_STAMINA;
+    this.slideLocked = false;
+    this.bombCharges = MAX_BOMBS;
+    this.nextBombScore = 900;
+    this.bombFlash = 0;
+    this.gunBuff = 0;
+    this.joystickJumpArmed = true;
     this.player = this.createPlayer();
     this.obstacles = [];
     this.pickups = [];
@@ -217,20 +299,30 @@ export class VoidrunnerEngine extends GameEngine {
     if (active) {
       this.score += step;
       this.distance += this.speed * step;
-      this.speed = Math.min(9.6, 3.4 + this.score * 0.0022);
+      this.speed = Math.min(MAX_SPEED, 3.4 + this.score * 0.0032);
       this.spawnTimer -= step;
       this.pickupTimer -= step;
       this.shotCooldown = Math.max(0, this.shotCooldown - step);
       this.invincible = Math.max(0, this.invincible - step);
+      this.bombFlash = Math.max(0, this.bombFlash - step);
+      this.gunBuff = Math.max(0, this.gunBuff - step);
+
+      if (this.score >= this.nextBombScore && this.bombCharges < MAX_BOMBS) {
+        this.bombCharges += 1;
+        this.nextBombScore += 900;
+      }
+
+      this.updateSlideStamina(step);
+      this.applyJoystickInput();
 
       if (this.spawnTimer <= 0) {
         this.spawnObstacle();
-        const difficulty = Math.max(48, 132 - this.score * 0.018);
+        const difficulty = Math.max(30, 132 - this.score * 0.026 - this.speed * 3);
         this.spawnTimer = difficulty + Math.random() * 42;
       }
       if (this.pickupTimer <= 0) {
         this.spawnPickup();
-        this.pickupTimer = 520 + Math.random() * 300;
+        this.pickupTimer = 460 + Math.random() * 280;
       }
     } else {
       this.deathTime += step;
@@ -355,7 +447,8 @@ export class VoidrunnerEngine extends GameEngine {
   }
 
   private spawnPickup(): void {
-    const type = Math.random() < 0.58 ? 'life' : 'shield';
+    const roll = Math.random();
+    const type: Pickup['type'] = roll < 0.46 ? 'life' : roll < 0.74 ? 'shield' : 'gun';
     this.pickups.push({
       type,
       x: LOGICAL_WIDTH + 24,
@@ -457,6 +550,9 @@ export class VoidrunnerEngine extends GameEngine {
       if (pickup.type === 'life') {
         this.player.lives = Math.min(MAX_LIVES, this.player.lives + 1);
         this.burst(pickup.x + 12, y + 12, 14, '#4e5a48', 3.4, -2);
+      } else if (pickup.type === 'gun') {
+        this.gunBuff = GUN_BUFF_DURATION;
+        this.burst(pickup.x + 12, y + 12, 16, '#8c5a3e', 4, -2.2);
       } else {
         this.invincible = Math.max(this.invincible, 150);
         this.burst(pickup.x + 12, y + 12, 16, '#3d5652', 3.8, -2);
@@ -469,7 +565,12 @@ export class VoidrunnerEngine extends GameEngine {
       score: Math.floor(this.score),
       best: Math.max(this.bestScore, Math.floor(this.score)),
       lives: this.player.lives,
-      maxLives: MAX_LIVES
+      maxLives: MAX_LIVES,
+      speed: this.speed,
+      bombCharges: this.bombCharges,
+      maxBombs: MAX_BOMBS,
+      slideStamina: this.slideStamina,
+      gunActive: this.gunBuff > 0
     });
   }
 
@@ -492,6 +593,10 @@ export class VoidrunnerEngine extends GameEngine {
 
     if (this.flash > 0) {
       ctx.fillStyle = `rgba(255, 255, 255, ${(this.flash / 12) * 0.24})`;
+      ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+    }
+    if (this.bombFlash > 0) {
+      ctx.fillStyle = `rgba(230, 224, 211, ${Math.min(0.5, this.bombFlash / 14)})`;
       ctx.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
     }
     ctx.restore();
@@ -765,6 +870,10 @@ export class VoidrunnerEngine extends GameEngine {
         ctx.fillStyle = '#4e5a48';
         ctx.fillRect(x + 9, y + 4, 6, 16);
         ctx.fillRect(x + 4, y + 9, 16, 6);
+      } else if (p.type === 'gun') {
+        ctx.fillStyle = '#8c5a3e';
+        ctx.fillRect(x + 4, y + 9, 18, 6);
+        ctx.fillRect(x + 16, y + 5, 6, 6);
       } else {
         ctx.strokeStyle = '#3d5652';
         ctx.lineWidth = 2;
@@ -814,6 +923,7 @@ export class VoidrunnerEngine extends GameEngine {
     if (code === 'Space' || code === 'ArrowUp') this.jump();
     else if (code === 'ArrowDown') this.slide(true);
     else if (key === 'f' || key === 'z') this.fireLaser();
+    else if (key === 'b') this.useBomb();
     else if (key === 'p' || key === 'escape') this.togglePause();
   }
 

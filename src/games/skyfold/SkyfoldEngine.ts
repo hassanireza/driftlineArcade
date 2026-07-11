@@ -28,6 +28,9 @@ const LASER_RANGE = 780;
 const LASER_DAMAGE = 55;
 const LASER_WIDTH = 6;
 const WAVE_DURATION = 22;
+const SENTRY_AGGRO_RANGE = 360;
+const MAX_BOMBS = 3;
+const BOMB_RADIUS_FRACTION = 0.62;
 
 export interface SkyfoldCallbacks {
   onHudChange: (hud: SkyfoldHud) => void;
@@ -58,6 +61,9 @@ export class SkyfoldEngine extends GameEngine {
   private monolithTimer = 0;
   private pickupTimer = 0;
   private fireHeld = false;
+  private bombCharges = MAX_BOMBS;
+  private bombFlash = 0;
+  private bombHeld = false;
 
   private player: Player = { x: 0, y: 0, vx: 0, vy: 0, aim: -Math.PI / 2, invulnerable: 0 };
   private terraces: Terrace[] = [];
@@ -127,12 +133,46 @@ export class SkyfoldEngine extends GameEngine {
 
   setTouchControl(control: string, active: boolean): void {
     this.input.setTouch(control, active);
+    if (control === 'bomb' && active && !this.bombHeld) this.useBomb();
+    this.bombHeld = control === 'bomb' ? active : this.bombHeld;
   }
 
   setPointer(x: number, y: number, active: boolean): void {
     this.input.pointer.x = clamp(x, 0, this.width);
     this.input.pointer.y = clamp(y, 0, this.height);
     this.input.pointer.active = active;
+  }
+
+  setJoystick(x: number, y: number, active: boolean): void {
+    this.input.setJoystick(x, y, active);
+  }
+
+  /**
+   * Screen-wipe ability: detonates every hostile currently on screen. This
+   * gives the player a real counter-play option against the sentries that
+   * home in on them, instead of only being able to out-fly or out-shoot a
+   * growing swarm.
+   */
+  useBomb(): void {
+    if (this.mode !== 'playing' || this.bombCharges <= 0) return;
+    this.bombCharges -= 1;
+    this.bombFlash = 0.35;
+    this.shake = Math.max(this.shake, 6);
+    const radius = Math.max(this.width, this.height) * BOMB_RADIUS_FRACTION;
+    for (let i = this.sentries.length - 1; i >= 0; i--) {
+      const sentry = this.sentries[i];
+      const dist = Math.hypot(sentry.x - this.player.x, sentry.y - this.player.y);
+      if (dist <= radius) this.destroySentry(i);
+    }
+    for (let i = this.monoliths.length - 1; i >= 0; i--) {
+      const stone = this.monoliths[i];
+      const dist = Math.hypot(stone.x - this.player.x, stone.y - this.player.y);
+      if (dist <= radius) {
+        this.score += 20;
+        this.burst(stone.x, stone.y, '#4a3a2c', 8);
+        this.monoliths.splice(i, 1);
+      }
+    }
   }
 
   override dispose(): void {
@@ -153,6 +193,9 @@ export class SkyfoldEngine extends GameEngine {
     this.spawnTimer = 1;
     this.monolithTimer = 1.4;
     this.pickupTimer = 0;
+    this.bombCharges = MAX_BOMBS;
+    this.bombFlash = 0;
+    this.bombHeld = false;
     this.sentries = [];
     this.monoliths = [];
     this.beams = [];
@@ -215,6 +258,7 @@ export class SkyfoldEngine extends GameEngine {
     this.laserCooldown = Math.max(0, this.laserCooldown - dt);
     this.player.invulnerable = Math.max(0, this.player.invulnerable - dt);
     this.shake = Math.max(0, this.shake - dt * 18);
+    this.bombFlash = Math.max(0, this.bombFlash - dt * 2.2);
 
     this.updateBackground(dt);
     this.updatePlayer(dt);
@@ -362,8 +406,13 @@ export class SkyfoldEngine extends GameEngine {
       const dy = this.player.y - sentry.y;
       const distance = Math.max(1, Math.hypot(dx, dy));
       const orbit = Math.sin(this.elapsed * 2.3 + sentry.phase) * sentry.orbit;
-      sentry.vx += ((dx / distance) * sentry.speed + Math.cos(sentry.phase) * orbit - sentry.vx) * Math.min(1, dt * 1.8);
-      sentry.vy += ((dy / distance) * sentry.speed + Math.sin(sentry.phase) * orbit - sentry.vy) * Math.min(1, dt * 1.8);
+      // Sentries only lock on once the player is within aggro range; beyond
+      // that they drift/patrol, so outrunning a distant swarm is a real,
+      // readable option instead of every hostile magnetizing on spawn.
+      const aggro = clamp((SENTRY_AGGRO_RANGE - distance) / SENTRY_AGGRO_RANGE + 0.15, 0.12, 1);
+      const pursuitSpeed = sentry.speed * aggro;
+      sentry.vx += ((dx / distance) * pursuitSpeed + Math.cos(sentry.phase) * orbit - sentry.vx) * Math.min(1, dt * 1.8);
+      sentry.vy += ((dy / distance) * pursuitSpeed + Math.sin(sentry.phase) * orbit - sentry.vy) * Math.min(1, dt * 1.8);
       sentry.x += sentry.vx * dt;
       sentry.y += sentry.vy * dt;
       sentry.phase += dt;
@@ -406,6 +455,7 @@ export class SkyfoldEngine extends GameEngine {
       this.wave += 1;
       this.waveProgress = 0;
       this.score += 250 * this.wave;
+      this.bombCharges = Math.min(MAX_BOMBS, this.bombCharges + 1);
       for (let i = 0; i < Math.min(12, 3 + this.wave); i++) this.spawnSentry();
     }
   }
@@ -589,6 +639,14 @@ export class SkyfoldEngine extends GameEngine {
     this.drawBeams();
     this.drawShards();
     ctx.restore();
+
+    if (this.bombFlash > 0) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(0.55, this.bombFlash);
+      ctx.fillStyle = '#cfc6b8';
+      ctx.fillRect(0, 0, this.width, this.height);
+      ctx.restore();
+    }
   }
 
   private drawSky(): void {
@@ -903,7 +961,8 @@ export class SkyfoldEngine extends GameEngine {
   // ── Input helpers ────────────────────────────────────────────────
 
   private getMovementInput(): { x: number; y: number } {
-    const { keys, touch } = this.input;
+    const { keys, touch, joystick } = this.input;
+    if (joystick.active) return { x: joystick.x, y: joystick.y };
     const left = keys.has('arrowleft') || keys.has('a') || touch.has('left');
     const right = keys.has('arrowright') || keys.has('d') || touch.has('right');
     const up = keys.has('arrowup') || keys.has('w') || touch.has('up');
@@ -932,6 +991,7 @@ export class SkyfoldEngine extends GameEngine {
       return;
     }
     if (key === ' ' || key === 'enter') this.fireHeld = true;
+    if (key === 'b') this.useBomb();
     if (this.mode === 'menu' && (key === 'enter' || key === ' ')) this.startRun();
   }
 
@@ -945,7 +1005,9 @@ export class SkyfoldEngine extends GameEngine {
       wave: this.wave,
       health: Math.ceil(this.health),
       laserReady: this.laserCooldown <= 0,
-      chargeFraction: clamp(1 - this.laserCooldown / LASER_COOLDOWN, 0, 1)
+      chargeFraction: clamp(1 - this.laserCooldown / LASER_COOLDOWN, 0, 1),
+      bombCharges: this.bombCharges,
+      maxBombs: MAX_BOMBS
     });
   }
 }
