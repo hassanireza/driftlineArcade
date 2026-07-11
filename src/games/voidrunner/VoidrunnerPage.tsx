@@ -165,7 +165,9 @@ export function VoidrunnerPage() {
           <canvas ref={canvasRef} aria-label="Game arena" />
 
           <section className={styles.mobileControls} aria-label="Touch controls">
-            <TouchJoystick label="Move" onChange={handleJoystick} />
+            <div className={touchStyles.joystickSlot}>
+              <TouchJoystick label="Move" onChange={handleJoystick} />
+            </div>
             <div className={touchStyles.actionCluster}>
               <TouchActionButton label="Jump" onPress={(active) => active && engineRef.current?.jump()} />
               <TouchActionButton

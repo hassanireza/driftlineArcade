@@ -5,16 +5,19 @@ export interface TouchJoystickProps {
   /** Called continuously with a normalized -1..1 vector while the stick is held. */
   onChange: (x: number, y: number, active: boolean) => void;
   label?: string;
-  /** Radius in px the thumb can travel from center. */
+  /** Radius in px the thumb can travel from the touch-down point. */
   radius?: number;
 }
 
 /**
- * A GTA-mobile-style floating analog joystick. The base is anchored where the
- * finger first touches down (within the widget's hit area), and the thumb is
- * clamped to `radius` px from that origin. Pure pointer events, no deps.
+ * A GTA-mobile-style floating analog joystick. The hit zone fills its
+ * container (meant to be a generously sized region, not a tiny fixed box) so
+ * a thumb can land anywhere within reach and the stick appears right there —
+ * that's what makes a floating joystick feel "calibrated" instead of fiddly.
+ * The base is anchored where the finger first touches down, and the thumb is
+ * clamped to `radius` px from that origin.
  */
-export function TouchJoystick({ onChange, label = 'Move', radius = 46 }: TouchJoystickProps) {
+export function TouchJoystick({ onChange, label = 'Move', radius = 54 }: TouchJoystickProps) {
   const zoneRef = useRef<HTMLDivElement | null>(null);
   const activePointerId = useRef<number | null>(null);
   const originRef = useRef({ x: 0, y: 0 });

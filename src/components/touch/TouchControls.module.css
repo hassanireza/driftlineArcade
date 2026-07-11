@@ -1,22 +1,28 @@
 .joystickZone {
   position: relative;
-  width: 128px;
-  height: 128px;
-  border-radius: 50%;
-  background: rgba(20, 19, 18, 0.38);
-  border: 1px solid rgba(230, 224, 211, 0.14);
+  width: 100%;
+  height: 100%;
   touch-action: none;
   pointer-events: auto;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 14px;
 }
 
 .joystickHint {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 1px solid rgba(230, 224, 211, 0.16);
+  background: rgba(20, 19, 18, 0.3);
+  display: grid;
+  place-items: center;
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.6rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(230, 224, 211, 0.4);
+  color: rgba(230, 224, 211, 0.45);
   pointer-events: none;
 }
 
@@ -40,6 +46,12 @@
   border-radius: 50%;
   background: rgba(230, 224, 211, 0.88);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+}
+
+.joystickSlot {
+  width: min(48vw, 280px);
+  height: min(60vw, 260px);
+  max-height: 100%;
 }
 
 .actionButton {

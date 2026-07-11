@@ -91,16 +91,19 @@ export function SkyfoldPage() {
   useEffect(() => {
     let pointerPressed = false;
     const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') return;
       const canvas = canvasRef.current;
       if (!canvas || mode !== 'playing' || !pointerPressed) return;
       const rect = canvas.getBoundingClientRect();
       engineRef.current?.setPointer(event.clientX - rect.left, event.clientY - rect.top, true);
     };
     const handlePointerDown = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') return;
       pointerPressed = true;
       handlePointerMove(event);
     };
-    const handlePointerUp = () => {
+    const handlePointerUp = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse') return;
       pointerPressed = false;
       engineRef.current?.setPointer(0, 0, false);
     };
@@ -178,7 +181,9 @@ export function SkyfoldPage() {
           <canvas ref={canvasRef} aria-label="Game arena" />
 
           <section className={styles.mobileControls} aria-label="Touch controls">
-            <TouchJoystick label="Move" onChange={handleJoystick} />
+            <div className={touchStyles.joystickSlot}>
+              <TouchJoystick label="Move" onChange={handleJoystick} />
+            </div>
             <div className={touchStyles.actionCluster}>
               <TouchActionButton label="Fire" onPress={(active) => engineRef.current?.setTouchControl('fire', active)} />
               <TouchActionButton
