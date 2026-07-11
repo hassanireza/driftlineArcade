@@ -48,7 +48,7 @@
    ════════════════════════════════════════════════════════ */
 .gameShell {
   position:fixed; inset:0;
-  display:grid; grid-template-rows:auto 1fr auto;
+  display:grid; grid-template-rows:auto 1fr;
   min-width:280px;
 }
 
@@ -138,7 +138,7 @@
 
 /* ── Mobile controls ─────────────────────────────────── */
 .mobileControls {
-  display:none; position:relative; z-index:5;
+  display:none; position:absolute; inset:0; z-index:5;
   justify-content:space-between; align-items:end;
   gap:8px;
   padding:8px max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
@@ -223,7 +223,12 @@
 /* ════════════════════════════════════════════════════════
    BUTTONS
    ════════════════════════════════════════════════════════ */
-.actions { display:flex; flex-wrap:wrap; gap:10px; }
+.actions {
+  display:flex; flex-wrap:wrap; gap:10px;
+  position:sticky; bottom:-1px; z-index:1;
+  margin:4px -4px -4px; padding:8px 4px 4px;
+  background:linear-gradient(0deg, rgba(8,8,7,.98) 60%, rgba(8,8,7,0) 100%);
+}
 
 .btnPrimary,.btnSecondary {
   display:inline-flex; align-items:center; justify-content:center;
@@ -304,6 +309,18 @@
   .copyBlock { padding:22px 18px 14px; }
   .bodyBlock { padding:16px 18px 22px; }
   .dialog h1 { font-size:clamp(2.2rem,10vw,3.2rem); }
+}
+
+/* Short viewports (landscape phones): compact the dialog chrome so the
+   action row is reachable with minimal or no scrolling. */
+@media (max-height:480px) {
+  .overlay { padding:8px; }
+  .dialog { max-height:calc(100dvh - 16px); }
+  .copyBlock { padding:14px 20px 10px; }
+  .bodyBlock { padding:10px 20px 14px; gap:10px; }
+  .leaderboardPanel { max-height:110px; }
+  .dialog h1 { font-size:clamp(1.6rem,5vw,2.4rem); }
+  .tagline { display:none; }
 }
 
 @media (prefers-reduced-motion:reduce) {

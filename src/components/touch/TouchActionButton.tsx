@@ -22,10 +22,12 @@ export function TouchActionButton({ label, sublabel, onPress, variant = 'primary
       disabled={disabled}
       onPointerDown={(event) => {
         event.preventDefault();
+        event.stopPropagation();
         onPress(true);
       }}
       onPointerUp={(event) => {
         event.preventDefault();
+        event.stopPropagation();
         onPress(false);
       }}
       onPointerCancel={() => onPress(false)}

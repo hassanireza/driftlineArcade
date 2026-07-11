@@ -163,26 +163,26 @@ export function VoidrunnerPage() {
 
         <section className={styles.stageWrap}>
           <canvas ref={canvasRef} aria-label="Game arena" />
-        </section>
 
-        <section className={styles.mobileControls} aria-label="Touch controls">
-          <TouchJoystick label="Move" onChange={handleJoystick} />
-          <div className={touchStyles.actionCluster}>
-            <TouchActionButton label="Jump" onPress={(active) => active && engineRef.current?.jump()} />
-            <TouchActionButton
-              label="Slide"
-              variant="secondary"
-              onPress={(active) => engineRef.current?.slide(active)}
-            />
-            <TouchActionButton label="Fire" onPress={(active) => active && engineRef.current?.fireLaser()} />
-            <TouchActionButton
-              label="Bomb"
-              sublabel={`${hud.bombCharges}/${hud.maxBombs}`}
-              variant="secondary"
-              disabled={hud.bombCharges <= 0}
-              onPress={(active) => active && engineRef.current?.useBomb()}
-            />
-          </div>
+          <section className={styles.mobileControls} aria-label="Touch controls">
+            <TouchJoystick label="Move" onChange={handleJoystick} />
+            <div className={touchStyles.actionCluster}>
+              <TouchActionButton label="Jump" onPress={(active) => active && engineRef.current?.jump()} />
+              <TouchActionButton
+                label="Slide"
+                variant="secondary"
+                onPress={(active) => engineRef.current?.slide(active)}
+              />
+              <TouchActionButton label="Fire" onPress={(active) => active && engineRef.current?.fireLaser()} />
+              <TouchActionButton
+                label="Bomb"
+                sublabel={`${hud.bombCharges}/${hud.maxBombs}`}
+                variant="secondary"
+                disabled={hud.bombCharges <= 0}
+                onPress={(active) => active && engineRef.current?.useBomb()}
+              />
+            </div>
+          </section>
         </section>
       </main>
       <OrientationGate gameName="Voidrunner" />

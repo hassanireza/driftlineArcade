@@ -32,6 +32,7 @@ export function TouchJoystick({ onChange, label = 'Move', radius = 46 }: TouchJo
     const zone = zoneRef.current;
     if (!zone) return;
     event.preventDefault();
+    event.stopPropagation();
     (event.target as Element).setPointerCapture?.(event.pointerId);
     activePointerId.current = event.pointerId;
     const rect = zone.getBoundingClientRect();
@@ -48,6 +49,7 @@ export function TouchJoystick({ onChange, label = 'Move', radius = 46 }: TouchJo
     const zone = zoneRef.current;
     if (!zone) return;
     event.preventDefault();
+    event.stopPropagation();
     const rect = zone.getBoundingClientRect();
     const dx = event.clientX - rect.left - originRef.current.x;
     const dy = event.clientY - rect.top - originRef.current.y;
@@ -62,6 +64,7 @@ export function TouchJoystick({ onChange, label = 'Move', radius = 46 }: TouchJo
 
   const handlePointerUp = useCallback((event: React.PointerEvent) => {
     if (activePointerId.current !== event.pointerId) return;
+    event.stopPropagation();
     reset();
   }, [reset]);
 

@@ -176,20 +176,20 @@ export function SkyfoldPage() {
 
         <section className={styles.stageWrap}>
           <canvas ref={canvasRef} aria-label="Game arena" />
-        </section>
 
-        <section className={styles.mobileControls} aria-label="Touch controls">
-          <TouchJoystick label="Move" onChange={handleJoystick} />
-          <div className={touchStyles.actionCluster}>
-            <TouchActionButton label="Fire" onPress={(active) => engineRef.current?.setTouchControl('fire', active)} />
-            <TouchActionButton
-              label="Bomb"
-              sublabel={`${hud.bombCharges}/${hud.maxBombs}`}
-              variant="secondary"
-              disabled={hud.bombCharges <= 0}
-              onPress={(active) => engineRef.current?.setTouchControl('bomb', active)}
-            />
-          </div>
+          <section className={styles.mobileControls} aria-label="Touch controls">
+            <TouchJoystick label="Move" onChange={handleJoystick} />
+            <div className={touchStyles.actionCluster}>
+              <TouchActionButton label="Fire" onPress={(active) => engineRef.current?.setTouchControl('fire', active)} />
+              <TouchActionButton
+                label="Bomb"
+                sublabel={`${hud.bombCharges}/${hud.maxBombs}`}
+                variant="secondary"
+                disabled={hud.bombCharges <= 0}
+                onPress={(active) => engineRef.current?.setTouchControl('bomb', active)}
+              />
+            </div>
+          </section>
         </section>
       </main>
       <OrientationGate gameName="Skyfold Aviary" />

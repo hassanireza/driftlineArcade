@@ -104,6 +104,22 @@ a { color: inherit; text-decoration: none; }
 /* Touch-only devices: tap toggles expansion since :hover is unreliable */
 .split:has(.panel--active) .panel          { flex: 0 0 var(--panel-rest); }
 .panel--active                              { flex: 0 0 var(--panel-active) !important; }
+.panel--active .reveal {
+  max-height: 420px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Coarse pointers (touch): the hover-reveal pattern never triggers, so the
+   Play button must always be visible instead of hiding behind a tap-to-expand
+   interaction the player may never discover. */
+@media (pointer: coarse) {
+  .reveal {
+    max-height: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
 
 /* ── Panel backgrounds ───────────────────────────────────── */
 /* Exact game sky gradient from drawSky() */
@@ -409,6 +425,21 @@ a { color: inherit; text-decoration: none; }
   .panel-content { padding-top: 72px; gap: 4px; }
   .description { -webkit-line-clamp: 4; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; }
   .feature-list li:nth-child(n+4) { display: none; }
+}
+
+/* ── Landscape phones (short viewport height): the side-by-side split at
+   this width doesn't get the portrait "stack + always reveal" treatment
+   above, so compact everything so the Play button never needs a scroll ── */
+@media (pointer: coarse) and (max-height: 480px) {
+  .panel-content { padding-top: 52px; padding-bottom: 14px; gap: 2px; }
+  .panel-title { font-size: clamp(1.6rem, 5vw, 2.6rem); }
+  .tagline { display: none; }
+  .description { -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; margin-top: 0; }
+  .feature-list { display: none; }
+  .reveal { gap: 4px; }
+  .cta-row { margin-top: 4px; }
+  .btn { padding: 9px 18px; font-size: 0.8rem; }
+  .ghost-num { display: none; }
 }
 
 /* ── Reduced motion ──────────────────────────────────────── */

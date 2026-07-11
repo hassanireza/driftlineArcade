@@ -58,7 +58,7 @@
    ════════════════════════════════════════════════════════ */
 .gameShell {
   position:fixed; inset:0;
-  display:grid; grid-template-rows:auto 1fr auto;
+  display:grid; grid-template-rows:auto 1fr;
   min-width:280px;
 }
 
@@ -151,8 +151,9 @@
 
 /* ── Mobile controls ─────────────────────────────────── */
 .mobileControls {
-  display:none; position:relative; z-index:5;
-  justify-content:space-between; align-items:end; gap:14px;
+  display:none; position:absolute; inset:0; z-index:5;
+  justify-content:space-between; align-items:end;
+  gap:14px;
   padding:8px max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));
   pointer-events:none; user-select:none;
 }
@@ -246,8 +247,29 @@
   overflow-y:auto;
 }
 
+/* Action row stays pinned to the bottom of the scroll container so it is
+   never left off-screen below a fold the player doesn't know to scroll to. */
+.actions {
+  position:sticky; bottom:-1px; z-index:1;
+  margin:4px -4px -4px; padding:8px 4px 4px;
+  background:linear-gradient(0deg, rgba(8,8,7,.98) 60%, rgba(8,8,7,0) 100%);
+}
+
 /* Remove the no-scroll utility — it was hiding content */
 .noScroll { overflow:visible !important; }
+
+/* Short viewports (landscape phones): compact the dialog chrome so the
+   action row is reachable with minimal or no scrolling. */
+@media (max-height:480px) {
+  .overlay { padding:8px; }
+  .dialog, .compactDialog, .startDialog { max-height:calc(100dvh - 16px); }
+  .copyBlock, .copyBlock.padded { padding:14px 20px 10px; }
+  .bodyBlock, .bodyBlock.padded { padding:10px 20px 14px; gap:10px; }
+  .compactDialog .leaderboardPanel { max-height:110px; }
+  .dialog h1 { font-size:clamp(1.6rem,5vw,2.4rem); }
+  .dialog h2 { font-size:1.3rem; }
+  .tagline { display:none; }
+}
 
 /* ════════════════════════════════════════════════════════
    TYPOGRAPHY
