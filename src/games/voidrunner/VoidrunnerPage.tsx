@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import styles from './VoidrunnerPage.module.css';
 import { VoidrunnerEngine } from './VoidrunnerEngine';
 import { LeaderboardStore } from '../../engine/LeaderboardStore';
 import { OrientationGate } from '../../components/touch/OrientationGate';
-import { TouchJoystick } from '../../components/touch/TouchJoystick';
 import { TouchActionButton } from '../../components/touch/TouchActionButton';
 import touchStyles from '../../components/touch/TouchControls.module.css';
 import type { VoidrunnerHud, VoidrunnerMode, VoidrunnerScoreEntry } from './types';
@@ -93,10 +92,6 @@ export function VoidrunnerPage() {
     };
   }, []);
 
-  const handleJoystick = useCallback((x: number, y: number, active: boolean) => {
-    engineRef.current?.setJoystick(x, y, active);
-  }, []);
-
   const overlayCopy = useMemo(() => {
     if (mode === 'paused') {
       return {
@@ -165,16 +160,15 @@ export function VoidrunnerPage() {
           <canvas ref={canvasRef} aria-label="Game arena" />
 
           <section className={styles.mobileControls} aria-label="Touch controls">
-            <div className={touchStyles.joystickSlot}>
-              <TouchJoystick label="Move" onChange={handleJoystick} />
-            </div>
-            <div className={touchStyles.actionCluster}>
+            <div className={`${touchStyles.actionCluster} ${touchStyles.actionClusterLeft}`}>
               <TouchActionButton label="Jump" onPress={(active) => active && engineRef.current?.jump()} />
               <TouchActionButton
                 label="Slide"
                 variant="secondary"
                 onPress={(active) => engineRef.current?.slide(active)}
               />
+            </div>
+            <div className={touchStyles.actionCluster}>
               <TouchActionButton label="Fire" onPress={(active) => active && engineRef.current?.fireLaser()} />
               <TouchActionButton
                 label="Bomb"

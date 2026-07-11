@@ -97,3 +97,9 @@
   pointer-events: none;
 }
 .actionCluster > * { pointer-events: auto; }
+
+.actionClusterLeft {
+  flex-direction: row;
+  justify-content: flex-start;
+  width: auto;
+}
